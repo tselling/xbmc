@@ -1704,9 +1704,12 @@ bool CLinuxRendererGL::RenderCapture(CRenderCapture* capture)
 
   // save current video rect
   CRect saveSize = m_destRect;
-
+  
+  saveRotatedCoords();//backup current m_rotatedDestCoords
+      
   // new video rect is capture size
   m_destRect.SetRect(0, 0, (float)capture->GetWidth(), (float)capture->GetHeight());
+  syncDestRectToRotatedPoints();//syncs the changed destRect to m_rotatedDestCoords
 
   //invert Y axis to get non-inverted image
   glDisable(GL_BLEND);
@@ -1731,6 +1734,7 @@ bool CLinuxRendererGL::RenderCapture(CRenderCapture* capture)
 
   // restore original video rect
   m_destRect = saveSize;
+  restoreRotatedCoords();//restores the previous state of the rotated dest coords
 
   return true;
 }
@@ -2452,7 +2456,7 @@ void CLinuxRendererGL::UploadCVRefTexture(int index)
     YUVFIELDS &fields = m_buffers[index].fields;
     YUVPLANE  &plane  = fields[0][0];
 
-    if (Cocoa_GetOSVersion() >= 0x1080)
+    if (Cocoa_GetOSVersion() >= 0x1070)
     {
       // 10.8 Mountain Lion breaks CGLTexImageIOSurface2D/GL_YCBCR_422_APPLE,
       // upload the old way.
@@ -2557,7 +2561,7 @@ bool CLinuxRendererGL::CreateCVRefTexture(int index)
   }
   glEnable(m_textureTarget);
   glGenTextures(1, &plane.id);
-  if (Cocoa_GetOSVersion() >= 0x1080)
+  if (Cocoa_GetOSVersion() >= 0x1070)
   {
     // 10.8 Mountain Lion breaks CGLTexImageIOSurface2D/GL_YCBCR_422_APPLE,
     // upload the old way.
