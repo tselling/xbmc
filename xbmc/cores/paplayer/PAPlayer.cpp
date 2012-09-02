@@ -62,7 +62,7 @@ PAPlayer::PAPlayer(IPlayerCallback& callback) :
   m_audioCallback      (NULL ),
   m_FileItem           (new CFileItem())
 {
-  m_playerGUIData.m_codec[20] = 0;
+  memset(&m_playerGUIData, 0, sizeof(m_playerGUIData));
 }
 
 PAPlayer::~PAPlayer()
@@ -155,7 +155,7 @@ void PAPlayer::SoftStop(bool wait/* = false */, bool close/* = true */)
     lock.Enter();
 
     /* be sure they have faded out */
-    while(wait)
+    while(wait && !CAEFactory::IsSuspended())
     {
       wait = false;
       for(StreamList::iterator itt = m_streams.begin(); itt != m_streams.end(); ++itt)
