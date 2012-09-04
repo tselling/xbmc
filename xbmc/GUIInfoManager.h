@@ -143,7 +143,7 @@ namespace INFO
 #define SYSTEM_HASLOCKS             140
 #define SYSTEM_ISMASTER             141
 #define SYSTEM_TRAYOPEN             142
-#define SYSTEM_SHOW_EXIT_BUTTON		143
+#define SYSTEM_SHOW_EXIT_BUTTON     143
 #define SYSTEM_ALARM_POS            144
 #define SYSTEM_LOGGEDON             145
 #define SYSTEM_PROFILENAME          146
@@ -426,7 +426,7 @@ namespace INFO
 
 #define VERSION_MAJOR 12
 #define VERSION_MINOR 0
-#define VERSION_TAG "-ALPHA5"
+#define VERSION_TAG "-ALPHA6"
 
 #define LISTITEM_START              35000
 #define LISTITEM_THUMB              (LISTITEM_START)
