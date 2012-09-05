@@ -62,6 +62,9 @@ void CAdvancedSettings::Initialize()
   m_limiterHold = 0.025f;
   m_limiterRelease = 0.1f;
 
+  m_omxHWAudioDecode = false;
+  m_omxDecodeStartWithValidFrame = false;
+
   m_karaokeSyncDelayCDG = 0.0f;
   m_karaokeSyncDelayLRC = 0.0f;
   m_karaokeChangeGenreForKaraokeSongs = false;
@@ -232,6 +235,14 @@ void CAdvancedSettings::Initialize()
 
   m_iMythMovieLength = 0; // 0 == Off
 
+  m_iEpgLingerTime = 60;           /* keep 1 hour by default */
+  m_iEpgUpdateCheckInterval = 300; /* check if tables need to be updated every 5 minutes */
+  m_iEpgCleanupInterval = 900;     /* remove old entries from the EPG every 15 minutes */
+  m_iEpgActiveTagCheckInterval = 60; /* check for updated active tags every minute */
+  m_iEpgRetryInterruptedUpdateInterval = 30; /* retry an interrupted epg update after 30 seconds */
+  m_bEpgDisplayUpdatePopup = true; /* display a progress popup while updating EPG data from clients */
+  m_bEpgDisplayIncrementalUpdatePopup = false; /* also display a progress popup while doing incremental EPG updates */
+
   m_bEdlMergeShortCommBreaks = false;      // Off by default
   m_iEdlMaxCommBreakLength = 8 * 30 + 10;  // Just over 8 * 30 second commercial break.
   m_iEdlMinCommBreakLength = 3 * 30;       // 3 * 30 second commercial breaks.
@@ -279,6 +290,13 @@ void CAdvancedSettings::Initialize()
 #endif
 
   m_bgInfoLoaderMaxThreads = 5;
+
+  m_iPVRTimeCorrection             = 0;
+  m_iPVRInfoToggleInterval         = 3000;
+  m_bPVRShowEpgInfoOnEpgItemSelect = true;
+  m_iPVRMinVideoCacheLevel         = 5;
+  m_iPVRMinAudioCacheLevel         = 5;
+  m_bPVRCacheInDvdPlayer           = true;
 
   m_measureRefreshrate = false;
 
@@ -390,6 +408,13 @@ void CAdvancedSettings::ParseSettingsFile(const CStdString &file)
 
     XMLUtils::GetFloat(pElement, "limiterhold", m_limiterHold, 0.0f, 100.0f);
     XMLUtils::GetFloat(pElement, "limiterrelease", m_limiterRelease, 0.001f, 100.0f);
+  }
+
+  pElement = pRootElement->FirstChildElement("omx");
+  if (pElement)
+  {
+    XMLUtils::GetBoolean(pElement, "omxhwaudiodecode", m_omxHWAudioDecode);
+    XMLUtils::GetBoolean(pElement, "omxdecodestartwithvalidframe", m_omxDecodeStartWithValidFrame);
   }
 
   pElement = pRootElement->FirstChildElement("karaoke");
@@ -762,6 +787,19 @@ void CAdvancedSettings::ParseSettingsFile(const CStdString &file)
     XMLUtils::GetInt(pElement, "movielength", m_iMythMovieLength);
   }
 
+  // EPG
+  pElement = pRootElement->FirstChildElement("epg");
+  if (pElement)
+  {
+    XMLUtils::GetInt(pElement, "lingertime", m_iEpgLingerTime);
+    XMLUtils::GetInt(pElement, "updatecheckinterval", m_iEpgUpdateCheckInterval);
+    XMLUtils::GetInt(pElement, "cleanupinterval", m_iEpgCleanupInterval);
+    XMLUtils::GetInt(pElement, "activetagcheckinterval", m_iEpgActiveTagCheckInterval);
+    XMLUtils::GetInt(pElement, "retryinterruptedupdateinterval", m_iEpgRetryInterruptedUpdateInterval);
+    XMLUtils::GetBoolean(pElement, "displayupdatepopup", m_bEpgDisplayUpdatePopup);
+    XMLUtils::GetBoolean(pElement, "displayincrementalupdatepopup", m_bEpgDisplayIncrementalUpdatePopup);
+  }
+
   // EDL commercial break handling
   pElement = pRootElement->FirstChildElement("edl");
   if (pElement)
@@ -938,6 +976,17 @@ void CAdvancedSettings::ParseSettingsFile(const CStdString &file)
   XMLUtils::GetInt(pRootElement, "bginfoloadermaxthreads", m_bgInfoLoaderMaxThreads);
   m_bgInfoLoaderMaxThreads = std::max(1, m_bgInfoLoaderMaxThreads);
 
+  TiXmlElement *pPVR = pRootElement->FirstChildElement("pvr");
+  if (pPVR)
+  {
+    XMLUtils::GetInt(pPVR, "timecorrection", m_iPVRTimeCorrection, 0, 1440);
+    XMLUtils::GetInt(pPVR, "infotoggleinterval", m_iPVRInfoToggleInterval, 0, 30000);
+    XMLUtils::GetBoolean(pPVR, "showepginfoonselect", m_bPVRShowEpgInfoOnEpgItemSelect);
+    XMLUtils::GetInt(pPVR, "minvideocachelevel", m_iPVRMinVideoCacheLevel, 0, 100);
+    XMLUtils::GetInt(pPVR, "minaudiocachelevel", m_iPVRMinAudioCacheLevel, 0, 100);
+    XMLUtils::GetBoolean(pPVR, "cacheindvdplayer", m_bPVRCacheInDvdPlayer);
+  }
+
   XMLUtils::GetBoolean(pRootElement, "measurerefreshrate", m_measureRefreshrate);
 
   TiXmlElement* pDatabase = pRootElement->FirstChildElement("videodatabase");
@@ -961,6 +1010,28 @@ void CAdvancedSettings::ParseSettingsFile(const CStdString &file)
     XMLUtils::GetString(pDatabase, "user", m_databaseMusic.user);
     XMLUtils::GetString(pDatabase, "pass", m_databaseMusic.pass);
     XMLUtils::GetString(pDatabase, "name", m_databaseMusic.name);
+  }
+
+  pDatabase = pRootElement->FirstChildElement("tvdatabase");
+  if (pDatabase)
+  {
+    XMLUtils::GetString(pDatabase, "type", m_databaseTV.type);
+    XMLUtils::GetString(pDatabase, "host", m_databaseTV.host);
+    XMLUtils::GetString(pDatabase, "port", m_databaseTV.port);
+    XMLUtils::GetString(pDatabase, "user", m_databaseTV.user);
+    XMLUtils::GetString(pDatabase, "pass", m_databaseTV.pass);
+    XMLUtils::GetString(pDatabase, "name", m_databaseTV.name);
+  }
+
+  pDatabase = pRootElement->FirstChildElement("epgdatabase");
+  if (pDatabase)
+  {
+    XMLUtils::GetString(pDatabase, "type", m_databaseEpg.type);
+    XMLUtils::GetString(pDatabase, "host", m_databaseEpg.host);
+    XMLUtils::GetString(pDatabase, "port", m_databaseEpg.port);
+    XMLUtils::GetString(pDatabase, "user", m_databaseEpg.user);
+    XMLUtils::GetString(pDatabase, "pass", m_databaseEpg.pass);
+    XMLUtils::GetString(pDatabase, "name", m_databaseEpg.name);
   }
 
   pElement = pRootElement->FirstChildElement("enablemultimediakeys");
