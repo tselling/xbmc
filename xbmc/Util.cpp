@@ -341,8 +341,12 @@ void CUtil::CleanString(const CStdString& strFileName, CStdString& strTitle, CSt
   {
     if (reYear.RegFind(strTitleAndYear.c_str()) >= 0)
     {
-      strTitleAndYear = reYear.GetReplaceString("\\1");
-      strYear = reYear.GetReplaceString("\\2");
+      char* ty = reYear.GetReplaceString("\\1");
+      char* y = reYear.GetReplaceString("\\2");
+      strTitleAndYear = ty;
+      strYear = y;
+      free(ty);
+      free(y);
     }
   }
 
@@ -2212,9 +2216,12 @@ CStdString CUtil::ResolveExecutablePath()
   snprintf(linkname, sizeof(linkname), "/proc/%i/exe", pid);
 
   /* Now read the symbolic link */
-  char buf[PATH_MAX];
-  int ret = readlink(linkname, buf, PATH_MAX);
-  buf[ret] = 0;
+  char buf[PATH_MAX + 1];
+  buf[0] = 0;
+
+  int ret = readlink(linkname, buf, sizeof(buf) - 1);
+  if (ret != -1)
+    buf[ret] = 0;
 
   strExecutablePath = buf;
 #endif

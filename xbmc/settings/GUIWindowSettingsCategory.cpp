@@ -229,6 +229,7 @@ bool CGUIWindowSettingsCategory::OnMessage(CGUIMessage &message)
       }
       return true;
     }
+    break;
   case GUI_MSG_LOAD_SKIN:
     {
       if (IsActive())
@@ -257,6 +258,7 @@ bool CGUIWindowSettingsCategory::OnMessage(CGUIMessage &message)
       m_delayedSetting = NULL;
       return true;
     }
+    break;
   case GUI_MSG_UPDATE:
     if (HasID(message.GetSenderId()))
       UpdateSettings();
@@ -2883,8 +2885,7 @@ void CGUIWindowSettingsCategory::FillInAudioDevices(CSetting* pSetting, bool Pas
 
 void CGUIWindowSettingsCategory::NetworkInterfaceChanged(void)
 {
-  return;
-
+#if 0
    NetworkAssignment iAssignment;
    CStdString sIPAddress;
    CStdString sNetworkMask;
@@ -2937,6 +2938,7 @@ void CGUIWindowSettingsCategory::NetworkInterfaceChanged(void)
       GetSetting("network.essid")->GetSetting()->FromString("");
       GetSetting("network.key")->GetSetting()->FromString("");
    }
+#endif
 }
 
 void CGUIWindowSettingsCategory::ValidatePortNumber(CBaseSettingControl* pSettingControl, const CStdString& userPort, const CStdString& privPort, bool listening/*=true*/)
