@@ -2185,6 +2185,7 @@ bool CApplication::LoadUserWindows()
             continue;
           }
           pWindow->SetVisibleCondition(visibleCondition);
+          pWindow->SetLoadType(CGUIWindow::KEEP_IN_MEMORY);
           g_windowManager.AddCustomWindow(pWindow);
         }
       }
@@ -3890,14 +3891,23 @@ bool CApplication::PlayStack(const CFileItem& item, bool bRestart)
         CLog::Log(LOGERROR, "%s - Cannot open VideoDatabase", __FUNCTION__);
     }
 
-    // set startoffset in movieitem, track stack item for updating purposes, and finally play disc part
-    if (selectedFile > 0 && selectedFile <= (int)movieList.Size())
+    // make sure that the selected part is within the boundaries
+    if (selectedFile <= 0)
     {
-      movieList[selectedFile - 1]->m_lStartOffset = startoffset > 0 ? STARTOFFSET_RESUME : 0;
-      movieList[selectedFile - 1]->SetProperty("stackFileItemToUpdate", true);
-      *m_stackFileItemToUpdate = item;
-      return PlayFile(*(movieList[selectedFile - 1]));
+      CLog::Log(LOGWARNING, "%s - Selected part %d out of range, playing part 1", __FUNCTION__, selectedFile);
+      selectedFile = 1;
     }
+    else if (selectedFile > movieList.Size())
+    {
+      CLog::Log(LOGWARNING, "%s - Selected part %d out of range, playing part %d", __FUNCTION__, selectedFile, movieList.Size());
+      selectedFile = movieList.Size();
+    }
+
+    // set startoffset in movieitem, track stack item for updating purposes, and finally play disc part
+    movieList[selectedFile - 1]->m_lStartOffset = startoffset > 0 ? STARTOFFSET_RESUME : 0;
+    movieList[selectedFile - 1]->SetProperty("stackFileItemToUpdate", true);
+    *m_stackFileItemToUpdate = item;
+    return PlayFile(*(movieList[selectedFile - 1]));
   }
   // case 2: all other stacks
   else
@@ -4012,12 +4022,18 @@ bool CApplication::PlayFile(const CFileItem& item, bool bRestart)
   if (item.IsDiscStub())
   {
 #ifdef HAS_DVD_DRIVE
-    // Display the Play Eject dialog
-    if (CGUIDialogPlayEject::ShowAndGetInput(item))
-      // PlayDiscAskResume takes path to disc. No parameter means default DVD drive.
-      // Can't do better as CGUIDialogPlayEject calls CMediaManager::IsDiscInDrive, which assumes default DVD drive anyway
-      return MEDIA_DETECT::CAutorun::PlayDiscAskResume();
+    // Display the Play Eject dialog if there is any optical disc drive
+    if (g_mediaManager.HasOpticalDrive())
+    {
+      if (CGUIDialogPlayEject::ShowAndGetInput(item))
+        // PlayDiscAskResume takes path to disc. No parameter means default DVD drive.
+        // Can't do better as CGUIDialogPlayEject calls CMediaManager::IsDiscInDrive, which assumes default DVD drive anyway
+        return MEDIA_DETECT::CAutorun::PlayDiscAskResume();
+    }
+    else
 #endif
+      CGUIDialogOK::ShowAndGetInput(435, 0, 436, 0);
+
     return true;
   }
 
