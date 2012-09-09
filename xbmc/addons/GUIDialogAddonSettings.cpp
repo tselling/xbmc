@@ -90,7 +90,6 @@ bool CGUIDialogAddonSettings::OnMessage(CGUIMessage& message)
   {
     case GUI_MSG_WINDOW_DEINIT:
     {
-      FreeControls();
       FreeSections();
     }
     break;
@@ -546,7 +545,7 @@ void CGUIDialogAddonSettings::SaveSettings(void)
 
 void CGUIDialogAddonSettings::FreeSections()
 {
-  CGUIControlGroupList *group = (CGUIControlGroupList *)GetControl(CONTROL_SETTINGS_AREA);
+  CGUIControlGroupList *group = (CGUIControlGroupList *)GetControl(CONTROL_SECTION_AREA);
   if (group)
   {
     group->FreeResources();
@@ -554,6 +553,7 @@ void CGUIDialogAddonSettings::FreeSections()
   }
   m_settings.clear();
   m_buttonValues.clear();
+  FreeControls();
 }
 
 void CGUIDialogAddonSettings::FreeControls()
@@ -1167,4 +1167,16 @@ CStdString CGUIDialogAddonSettings::GetCurrentID() const
   if (m_addon)
     return m_addon->ID();
   return "";
+}
+
+int CGUIDialogAddonSettings::GetDefaultLabelID(int controlId) const
+{
+  if (controlId == ID_BUTTON_OK)
+    return 186;
+  else if (controlId == ID_BUTTON_CANCEL)
+    return 222;
+  else if (controlId == ID_BUTTON_DEFAULT)
+    return 409;
+
+  return CGUIDialogBoxBase::GetDefaultLabelID(controlId);
 }
