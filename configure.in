@@ -970,6 +970,9 @@ PKG_CHECK_MODULES([SAMPLERATE], [samplerate],
 PKG_CHECK_MODULES([FREETYPE2],  [freetype2],
   [INCLUDES="$INCLUDES $FREETYPE2_CFLAGS"; LIBS="$LIBS $FREETYPE2_LIBS"],
   AC_MSG_ERROR($missing_library))
+PKG_CHECK_MODULES([TAGLIB],  [taglib >= 1.8],
+  [INCLUDES="$INCLUDES $TAGLIB_CFLAGS"; LIBS="$LIBS $TAGLIB_LIBS"],
+  AC_MSG_ERROR($missing_library))
 
 if test "$target_platform" = "target_android" ; then
 PKG_CHECK_MODULES([ZIP],       [libzip],
@@ -1497,6 +1500,13 @@ if test "$use_external_ffmpeg" = "yes"; then
   # libavcore is optional
   PKG_CHECK_EXISTS([libavcore], FFMPEG_LIBNAMES="$FFMPEG_LIBNAMES libavcore")
 
+  # one of libswresample or libavresample is needed
+  PKG_CHECK_EXISTS([libswresample], FFMPEG_LIBNAMES="$FFMPEG_LIBNAMES libswresample",
+                   [PKG_CHECK_EXISTS([libavresample],
+                                     FFMPEG_LIBNAMES="$FFMPEG_LIBNAMES libavresample",
+                                     AC_MSG_ERROR([You need either libswresample
+                                                   or libavresample.]))])
+
   PKG_CHECK_MODULES([FFMPEG], [$FFMPEG_LIBNAMES],
                     [INCLUDES="$INCLUDES $FFMPEG_CFLAGS"; LIBS="$LIBS $FFMPEG_LIBS"],
                     AC_MSG_ERROR($missing_library))
@@ -1529,6 +1539,9 @@ if test "$use_external_ffmpeg" = "yes"; then
   # We'll support the use of rgb2rgb.h if it exists.
   AC_CHECK_HEADERS([libswscale/rgb2rgb.h],,)
   AC_CHECK_HEADERS([ffmpeg/rgb2rgb.h],,)
+
+  # Check for libswresample or libavresample headers.
+  AC_CHECK_HEADERS([libswresample/swresample.h libavresample/avresample.h])
 
   # Check if AVFilterBufferRefVideoProps AVRational member is named
   # 'pixel_aspect' or 'sample_aspect_ratio'.
@@ -1583,7 +1596,7 @@ final_message="$final_message\n  SWIG Available:\tYes"
 
 echo "Checking for a jre installation"
 AC_PATH_PROG(JAVA_EXE, java, "none")
-if test "$JAVE_EXE" = "none"; then
+if test "$JAVA_EXE" = "none"; then
   AC_MSG_ERROR($missing_program)
 fi
 final_message="$final_message\n  JRE Available:\tYes"
