@@ -150,6 +150,7 @@ ifeq (@USE_ANDROID@,1)
 DIRECTORY_ARCHIVES += xbmc/android/loader/AndroidDyload.a
 DIRECTORY_ARCHIVES += xbmc/windowing/android/windowing_android.a
 DIRECTORY_ARCHIVES += xbmc/android/activity/activity.a
+DIRECTORY_ARCHIVES += xbmc/android/bionic_supplement/bionic_supplement.a
 endif
 
 ifeq (@USE_AMLPLAYER@,1)
@@ -401,18 +402,13 @@ libs: libhdhomerun libid3tag imagelib libexif system/libcpluff-@ARCH@.so $(CMYTH
 
 externals: codecs libs visualizations screensavers libaddon pvraddons
 
-ADDON_BINDINGS = xbmc/interfaces/legacy/legacy.a
-ADDON_BINDINGS += xbmc/interfaces/python/python_binding.a
-
 xcode_depends: \
 	codecs libs visualizations screensavers eventclients skins libaddon \
 	lib/libsquish/libsquish.a \
 	lib/libapetag/.libs/libapetag.a \
 	lib/libRTV/librtv.a \
 	lib/libXDAAP/libxdaap.a \
-	lib/SlingboxLib/SlingboxLib.a \
-	$(ADDON_BINDINGS)
-	libtool -static -o xbmc/interfaces/addonbindings.a $(ADDON_BINDINGS)
+	lib/SlingboxLib/SlingboxLib.a
 
 OBJSXBMC =$(DIRECTORY_ARCHIVES)
 OBJSXBMC+=lib/libapetag/.libs/libapetag.a
@@ -470,7 +466,7 @@ else
 	$(MAKE) -C tools/XBMCTex/
 endif
 
-tools/TexturePacker/TexturePacker: xbmc/guilib/guilib.a lib/libsquish/libsquish.a
+tools/TexturePacker/TexturePacker: lib/libsquish/libsquish.a xbmc/guilib/XBTF.h
 	$(MAKE) -C tools/TexturePacker/
 
 
