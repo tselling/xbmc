@@ -668,10 +668,6 @@ case $use_platform in
      use_texturepacker_native=yes
      use_arch="arm"
      use_cpu=arm1176jzf-s
-     use_armv5te="yes"
-     use_armv6t2="no"
-     use_armv6="yes"
-     use_armvfp="yes"
      use_hardcoded_tables="yes"
      use_alsa="no"
      USE_TEXTUREPACKER_NATIVE_ROOT="$TEXTUREPACKER_NATIVE_ROOT"
@@ -2348,7 +2344,8 @@ OUTPUT_FILES="$OUTPUT_FILES addons/skin.touched/media/Makefile"
 fi
 
 OUTPUT_FILES="$OUTPUT_FILES \
-  xbmc/interfaces/python/Makefile"
+  xbmc/interfaces/python/Makefile \
+  xbmc/interfaces/python/test/Makefile"
 
 # Line below is used so we can use AM_INIT_AUTOMAKE. The corresponding
 # .dummy.am does nothing.
