@@ -890,7 +890,7 @@ bool CApplication::CreateGUI()
     return false;
 
   int iResolution = g_graphicsContext.GetVideoResolution();
-  CLog::Log(LOGINFO, "GUI format %ix%i %s",
+  CLog::Log(LOGINFO, "GUI format %ix%i, Display %s",
             g_settings.m_ResInfo[iResolution].iWidth,
             g_settings.m_ResInfo[iResolution].iHeight,
             g_settings.m_ResInfo[iResolution].strMode.c_str());
@@ -2929,6 +2929,10 @@ void CApplication::UpdateLCD()
   {
     if (g_application.NavigationIdleTime() < 5)
       g_lcd->Render(ILCD::LCD_MODE_NAVIGATION);
+    else if (g_PVRManager.IsPlayingTV())
+      g_lcd->Render(ILCD::LCD_MODE_PVRTV);
+    else if (g_PVRManager.IsPlayingRadio())
+      g_lcd->Render(ILCD::LCD_MODE_PVRRADIO);
     else if (IsPlayingVideo())
       g_lcd->Render(ILCD::LCD_MODE_VIDEO);
     else if (IsPlayingAudio())
