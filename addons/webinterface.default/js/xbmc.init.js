@@ -1,6 +1,5 @@
-#pragma once
 /*
- *      Copyright (C) 2012 Team XBMC
+ *      Copyright (C) 2005-2012 Team XBMC
  *      http://www.xbmc.org
  *
  *  This Program is free software; you can redistribute it and/or modify
@@ -19,14 +18,11 @@
  *
  */
 
-#include "AndroidTouch.h"
-#include "AndroidKey.h"
-#include "AndroidMouse.h"
+(function () {
+    "use strict"
 
-class IInputHandler : public CAndroidTouch, public CAndroidKey, public CAndroidMouse
-{
-public:
-  IInputHandler() : CAndroidTouch(), CAndroidKey(), CAndroidMouse() {}
+    var mediaLibrary = new MediaLibrary(),
+        nowPlayingManager = new NowPlayingManager();
+    applyDeviceFixes();
+}());
 
-  virtual void setDPI(uint32_t dpi) { CAndroidTouch::setDPI(dpi); }
-};
