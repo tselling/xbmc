@@ -298,6 +298,7 @@ void CAdvancedSettings::Initialize()
   m_measureRefreshrate = false;
 
   m_cacheMemBufferSize = 1024 * 1024 * 20;
+  m_addonPackageFolderSize = 200*1024*1024;
 
   m_jsonOutputCompact = true;
   m_jsonTcpPort = 9090;
@@ -306,8 +307,8 @@ void CAdvancedSettings::Initialize()
 
   m_canWindowed = true;
   m_guiVisualizeDirtyRegions = false;
-  m_guiAlgorithmDirtyRegions = 0;
-  m_guiDirtyRegionNoFlipTimeout = -1;
+  m_guiAlgorithmDirtyRegions = 3;
+  m_guiDirtyRegionNoFlipTimeout = 0;
   m_logEnableAirtunes = false;
   m_airTunesPort = 36666;
   m_airPlayPort = 36667;
@@ -759,6 +760,7 @@ void CAdvancedSettings::ParseSettingsFile(const CStdString &file)
   XMLUtils::GetUInt(pRootElement,"restrictcapsmask", m_RestrictCapsMask);
   XMLUtils::GetFloat(pRootElement,"sleepbeforeflip", m_sleepBeforeFlip, 0.0f, 1.0f);
   XMLUtils::GetBoolean(pRootElement,"virtualshares", m_bVirtualShares);
+  XMLUtils::GetUInt(pRootElement, "packagefoldersize", m_addonPackageFolderSize);
 
   //Tuxbox
   pElement = pRootElement->FirstChildElement("tuxbox");
