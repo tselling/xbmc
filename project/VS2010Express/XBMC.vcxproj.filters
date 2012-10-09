@@ -1693,9 +1693,6 @@
     <ClCompile Include="..\..\xbmc\video\dialogs\GUIDialogVideoOverlay.cpp">
       <Filter>video\dialogs</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\xbmc\video\dialogs\GUIDialogVideoScan.cpp">
-      <Filter>video\dialogs</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\xbmc\video\dialogs\GUIDialogVideoSettings.cpp">
       <Filter>video\dialogs</Filter>
     </ClCompile>
@@ -1995,9 +1992,6 @@
     </ClCompile>
     <ClCompile Include="..\..\xbmc\guilib\JpegIO.cpp">
       <Filter>guilib</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\xbmc\cores\paplayer\BXAcodec.cpp">
-      <Filter>cores\paplayer</Filter>
     </ClCompile>
     <ClCompile Include="..\..\xbmc\interfaces\info\SkinVariable.cpp">
       <Filter>interfaces\info</Filter>
@@ -4587,9 +4581,6 @@
     <ClInclude Include="..\..\xbmc\video\dialogs\GUIDialogVideoOverlay.h">
       <Filter>video\dialogs</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\xbmc\video\dialogs\GUIDialogVideoScan.h">
-      <Filter>video\dialogs</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\xbmc\video\dialogs\GUIDialogVideoSettings.h">
       <Filter>video\dialogs</Filter>
     </ClInclude>
@@ -4911,9 +4902,6 @@
     </ClInclude>
     <ClInclude Include="..\..\xbmc\guilib\JpegIO.h">
       <Filter>guilib</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\xbmc\cores\paplayer\BXAcodec.h">
-      <Filter>cores\paplayer</Filter>
     </ClInclude>
     <ClInclude Include="..\..\xbmc\interfaces\info\SkinVariable.h">
       <Filter>interfaces\info</Filter>
