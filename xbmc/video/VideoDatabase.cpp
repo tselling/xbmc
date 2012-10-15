@@ -5072,7 +5072,7 @@ bool CVideoDatabase::GetPeopleNav(const CStdString& strBaseDir, CFileItemList& i
       }
       else if (idContent == VIDEODB_CONTENT_EPISODES)
       {
-        strSQL = "select %s " + PrepareSQL("%slinkepisode, actors, episodeview, files ", type.c_str());
+        strSQL = "select %s " + PrepareSQL("from %slinkepisode, actors, episodeview, files ", type.c_str());
         extFilter.fields = "actors.idActor, actors.strActor, actors.strThumb, count(1), count(files.playCount)";
         extFilter.AppendWhere(PrepareSQL("actors.idActor = %slinkepisode.id%s and %slinkepisode.idEpisode = episodeview.idEpisode and files.idFile = episodeview.idFile",
                                          type.c_str(), type.c_str(), type.c_str()));
@@ -8770,70 +8770,6 @@ bool CVideoDatabase::ImportArtFromXML(const TiXmlNode *node, map<string, string>
   if (XMLUtils::GetString(node, "fanart", art))
     artwork.insert(make_pair("fanart", art));
   return !artwork.empty();
-}
-
-bool CVideoDatabase::GetArbitraryQuery(const CStdString& strQuery, const CStdString& strOpenRecordSet, const CStdString& strCloseRecordSet,
-                                       const CStdString& strOpenRecord, const CStdString& strCloseRecord, const CStdString& strOpenField, const CStdString& strCloseField, CStdString& strResult)
-{
-  try
-  {
-    strResult = "";
-    if (NULL == m_pDB.get()) return false;
-    if (NULL == m_pDS.get()) return false;
-    CStdString strSQL=strQuery;
-    if (!m_pDS->query(strSQL.c_str()))
-    {
-      strResult = m_pDB->getErrorMsg();
-      return false;
-    }
-    strResult=strOpenRecordSet;
-    while (!m_pDS->eof())
-    {
-      strResult += strOpenRecord;
-      for (int i=0; i<m_pDS->fieldCount(); i++)
-      {
-        strResult += strOpenField + CStdString(m_pDS->fv(i).get_asString()) + strCloseField;
-      }
-      strResult += strCloseRecord;
-      m_pDS->next();
-    }
-    strResult += strCloseRecordSet;
-    m_pDS->close();
-    return true;
-  }
-  catch (...)
-  {
-    CLog::Log(LOGERROR, "%s failed", __FUNCTION__);
-  }
-  try
-  {
-    if (NULL == m_pDB.get()) return false;
-    strResult = m_pDB->getErrorMsg();
-  }
-  catch (...)
-  {
-
-  }
-
-  return false;
-}
-
-bool CVideoDatabase::ArbitraryExec(const CStdString& strExec)
-{
-  try
-  {
-    if (NULL == m_pDB.get()) return false;
-    if (NULL == m_pDS.get()) return false;
-    CStdString strSQL = strExec;
-    m_pDS->exec(strSQL.c_str());
-    m_pDS->close();
-    return true;
-  }
-  catch (...)
-  {
-    CLog::Log(LOGERROR, "%s failed", __FUNCTION__);
-  }
-  return false;
 }
 
 void CVideoDatabase::ConstructPath(CStdString& strDest, const CStdString& strPath, const CStdString& strFileName)
