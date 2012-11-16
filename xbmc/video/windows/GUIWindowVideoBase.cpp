@@ -72,6 +72,7 @@
 #include "utils/EdenVideoArtUpdater.h"
 #include "GUIInfoManager.h"
 #include "utils/GroupUtils.h"
+#include "filesystem/File.h"
 
 using namespace std;
 using namespace XFILE;
@@ -1073,6 +1074,22 @@ bool CGUIWindowVideoBase::ShowPlaySelection(CFileItemPtr& item)
     }
   }
 
+  CStdString ext = URIUtils::GetExtension(item->GetPath());
+  ext.ToLower();
+  if (ext == ".iso" ||  ext == ".img")
+  {
+    CURL url2("udf://");
+    url2.SetHostName(item->GetPath());
+    url2.SetFileName("BDMV/index.bdmv");
+    if (CFile::Exists(url2.Get()))
+    {
+      url2.SetFileName("");
+
+      CURL url("bluray://");
+      url.SetHostName(url2.Get());
+      return ShowPlaySelection(item, url.Get());
+    }
+  }
   return true;
 }
 
@@ -1606,7 +1623,8 @@ void CGUIWindowVideoBase::OnDeleteItem(CFileItemPtr item)
       return;
   }
 
-  if (g_guiSettings.GetBool("filelists.allowfiledeletion") &&
+  if ((g_guiSettings.GetBool("filelists.allowfiledeletion") ||
+       m_vecItems->GetPath().Equals("special://videoplaylists/")) &&
       CUtil::SupportsWriteFileOperations(item->GetPath()))
     CFileUtils::DeleteItem(item);
 }
