@@ -302,7 +302,7 @@ void CExternalPlayer::Process()
   BOOL ret = TRUE;
 #if defined(_WIN32)
   ret = ExecuteAppW32(strFName.c_str(),strFArgs.c_str());
-#elif defined(_LINUX) || defined(TARGET_DARWIN_OSX)
+#elif !defined(TARGET_ANDROID) && (defined(_LINUX) || defined(TARGET_DARWIN_OSX))
   ret = ExecuteAppLinux(strFArgs.c_str());
 #elif defined(TARGET_ANDROID)
   ret = ExecuteAppAndroid(m_filename.c_str(),mainFile.c_str());
