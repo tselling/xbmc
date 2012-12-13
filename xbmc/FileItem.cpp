@@ -357,7 +357,8 @@ CFileItem::CFileItem(const CMediaSource& share)
   m_bIsFolder = true;
   m_bIsShareOrDrive = true;
   m_strPath = share.strPath;
-  URIUtils::AddSlashAtEnd(m_strPath);
+  if (!IsRSS()) // no slash at end for rss feeds
+    URIUtils::AddSlashAtEnd(m_strPath);
   CStdString label = share.strName;
   if (!share.strStatus.IsEmpty())
     label.Format("%s (%s)", share.strName.c_str(), share.strStatus.c_str());
@@ -1447,6 +1448,9 @@ void CFileItem::UpdateInfo(const CFileItem &item, bool replaceLabels /*=true*/)
   if (item.HasVideoInfoTag())
   { // copy info across (TODO: premiered info is normally stored in m_dateTime by the db)
     *GetVideoInfoTag() = *item.GetVideoInfoTag();
+    // preferably use some information from PVR info tag if available
+    if (HasPVRRecordingInfoTag())
+      GetPVRRecordingInfoTag()->CopyClientInfo(GetVideoInfoTag());
     SetOverlayImage(ICON_OVERLAY_UNWATCHED, GetVideoInfoTag()->m_playCount > 0);
   }
   if (item.HasMusicInfoTag())
@@ -1467,7 +1471,8 @@ void CFileItem::UpdateInfo(const CFileItem &item, bool replaceLabels /*=true*/)
 
 void CFileItem::SetFromVideoInfoTag(const CVideoInfoTag &video)
 {
-  SetLabel(video.m_strTitle);
+  if (!video.m_strTitle.empty())
+    SetLabel(video.m_strTitle);
   if (video.m_strFileNameAndPath.IsEmpty())
   {
     m_strPath = video.m_strPath;
@@ -1488,7 +1493,8 @@ void CFileItem::SetFromVideoInfoTag(const CVideoInfoTag &video)
 
 void CFileItem::SetFromAlbum(const CAlbum &album)
 {
-  SetLabel(album.strAlbum);
+  if (!album.strAlbum.empty())
+    SetLabel(album.strAlbum);
   m_bIsFolder = true;
   m_strLabel2 = StringUtils::Join(album.artist, g_advancedSettings.m_musicItemSeparator);
   GetMusicInfoTag()->SetAlbum(album);
@@ -1498,14 +1504,17 @@ void CFileItem::SetFromAlbum(const CAlbum &album)
 
 void CFileItem::SetFromSong(const CSong &song)
 {
-  SetLabel(song.strTitle);
-  m_strPath = song.strFileName;
+  if (!song.strTitle.empty())
+    SetLabel(song.strTitle);
+  if (!song.strFileName.empty())
+    m_strPath = song.strFileName;
   GetMusicInfoTag()->SetSong(song);
   m_lStartOffset = song.iStartOffset;
   m_lStartPartNumber = 1;
   SetProperty("item_start", song.iStartOffset);
   m_lEndOffset = song.iEndOffset;
-  SetArt("thumb", song.strThumb);
+  if (!song.strThumb.empty())
+    SetArt("thumb", song.strThumb);
 }
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -2617,7 +2626,7 @@ bool CFileItemList::AlwaysCache() const
   return false;
 }
 
-CStdString CFileItem::GetUserMusicThumb(bool alwaysCheckRemote /* = false */) const
+CStdString CFileItem::GetUserMusicThumb(bool alwaysCheckRemote /* = false */, bool fallbackToFolder /* = false */) const
 {
   if (m_strPath.IsEmpty()
    || m_bIsShareOrDrive
@@ -2634,6 +2643,13 @@ CStdString CFileItem::GetUserMusicThumb(bool alwaysCheckRemote /* = false */) co
   CStdString fileThumb(GetTBNFile());
   if (CFile::Exists(fileThumb))
     return fileThumb;
+
+  // Fall back to folder thumb, if requested
+  if (!m_bIsFolder && fallbackToFolder)
+  {
+    CFileItem item(URIUtils::GetDirectory(m_strPath), true);
+    return item.GetUserMusicThumb(alwaysCheckRemote);
+  }
 
   // if a folder, check for folder.jpg
   if (m_bIsFolder && !IsFileFolder() && (!IsRemote() || alwaysCheckRemote || g_guiSettings.GetBool("musicfiles.findremotethumbs")))
@@ -2772,7 +2788,10 @@ CStdString CFileItem::GetLocalArt(const std::string &artFile, bool useFolder) co
     return "";
 
   if (useFolder)
-    return URIUtils::AddFileToFolder(strFile, artFile);
+  {
+    if (!artFile.empty())
+      return URIUtils::AddFileToFolder(strFile, artFile);
+  }
   else
   {
     if (artFile.empty()) // old thumbnail matching
@@ -2806,6 +2825,15 @@ CStdString CFileItem::GetMovieName(bool bUseFolderNames /* = false */) const
 {
   if (IsLabelPreformated())
     return GetLabel();
+
+  if (m_pvrRecordingInfoTag)
+    return m_pvrRecordingInfoTag->m_strTitle;
+  else if (CUtil::IsTVRecording(m_strPath))
+  {
+    CStdString title = CPVRRecording::GetTitleFromURL(m_strPath);
+    if (!title.IsEmpty())
+      return title;
+  }
 
   CStdString strMovieName = GetBaseMoviePath(bUseFolderNames);
 
@@ -3024,7 +3052,7 @@ bool CFileItemList::UpdateItem(const CFileItem *item)
     CFileItemPtr pItem = m_items[i];
     if (pItem->IsSamePath(item))
     {
-      *pItem = *item;
+      pItem->UpdateInfo(*item);
       return true;
     }
   }

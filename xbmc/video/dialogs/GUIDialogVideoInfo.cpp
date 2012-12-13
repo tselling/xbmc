@@ -47,6 +47,7 @@
 #include "music/MusicDatabase.h"
 #include "URL.h"
 #include "video/VideoThumbLoader.h"
+#include "filesystem/Directory.h"
 
 using namespace std;
 using namespace XFILE;
@@ -703,6 +704,7 @@ void CGUIDialogVideoInfo::OnGetArt()
 
   CStdString result;
   VECSOURCES sources(g_settings.m_videoSources);
+  AddItemPathToFileBrowserSources(sources, *m_movieItem);
   g_mediaManager.GetLocalDrives(sources);
   if (!CGUIDialogFileBrowser::ShowAndGetImage(items, sources, g_localizeStrings.Get(13511), result))
     return;   // user cancelled
@@ -723,7 +725,7 @@ void CGUIDialogVideoInfo::OnGetArt()
   else if (CFile::Exists(result))
     newThumb = result;
   else // none
-    newThumb = "-"; // force local thumbs to be ignored
+    newThumb.clear();
 
   // update thumb in the database
   CVideoDatabase db;
@@ -733,15 +735,7 @@ void CGUIDialogVideoInfo::OnGetArt()
     db.Close();
   }
   CUtil::DeleteVideoDatabaseDirectoryCache(); // to get them new thumbs to show
-  // update the art - we need to call the map version of SetArt to force
-  // the thumb image to update in the case it's a fallback image
-  map<string, string> itemArt(m_movieItem->GetArt());
-  if (currentArt.find("thumb") == currentArt.end())
-  { // no "thumb" image, so make sure we reset the thumb fallback
-    itemArt.erase("thumb");
-  }
-  itemArt[type] = newThumb;
-  m_movieItem->SetArt(itemArt);
+  m_movieItem->SetArt(type, newThumb);
   if (m_movieItem->HasProperty("set_folder_thumb"))
   { // have a folder thumb to set as well
     VIDEO::CVideoInfoScanner::ApplyThumbToFolder(m_movieItem->GetProperty("set_folder_thumb").asString(), newThumb);
@@ -806,6 +800,7 @@ void CGUIDialogVideoInfo::OnGetFanart()
 
   CStdString result;
   VECSOURCES sources(g_settings.m_videoSources);
+  AddItemPathToFileBrowserSources(sources, item);
   g_mediaManager.GetLocalDrives(sources);
   bool flip=false;
   if (!CGUIDialogFileBrowser::ShowAndGetImage(items, sources, g_localizeStrings.Get(20437), result, &flip, 20445) || result.Equals("fanart://Current"))
@@ -855,7 +850,7 @@ void CGUIDialogVideoInfo::PlayTrailer()
   *item.GetVideoInfoTag() = *m_movieItem->GetVideoInfoTag();
   item.GetVideoInfoTag()->m_streamDetails.Reset();
   item.GetVideoInfoTag()->m_strTitle.Format("%s (%s)",m_movieItem->GetVideoInfoTag()->m_strTitle.c_str(),g_localizeStrings.Get(20410));
-  item.SetArt("thumb", m_movieItem->GetArt("thumb"));
+  CVideoThumbLoader::SetArt(item, m_movieItem->GetArt());
   item.GetVideoInfoTag()->m_iDbId = -1;
   item.GetVideoInfoTag()->m_iFileId = -1;
 
@@ -883,4 +878,28 @@ void CGUIDialogVideoInfo::SetLabel(int iControl, const CStdString &strLabel)
 std::string CGUIDialogVideoInfo::GetThumbnail() const
 {
   return m_movieItem->GetArt("thumb");
+}
+
+void CGUIDialogVideoInfo::AddItemPathToFileBrowserSources(VECSOURCES &sources, const CFileItem &item)
+{
+  if (!item.HasVideoInfoTag())
+    return;
+
+  CStdString itemDir = item.GetVideoInfoTag()->m_basePath;
+
+  //season
+  if (itemDir.IsEmpty())
+    itemDir = item.GetVideoInfoTag()->GetPath();
+
+  CFileItem itemTmp(itemDir, false);
+  if (itemTmp.IsVideo())
+    itemDir = URIUtils::GetParentPath(itemDir);
+
+  if (!itemDir.IsEmpty() && CDirectory::Exists(itemDir))
+  {
+    CMediaSource itemSource;
+    itemSource.strName = g_localizeStrings.Get(36041);
+    itemSource.strPath = itemDir;
+    sources.push_back(itemSource);
+  }
 }
