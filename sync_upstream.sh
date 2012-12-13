@@ -15,7 +15,7 @@ git checkout android-neon
 git merge origin/master
 
 # Merge changes onto origin/android-neon-external
-echo "Merging master onto origin/android-neon"
+echo "Merging master onto origin/android-neon-external"
 git checkout android-neon-external
 git merge origin/master
 
