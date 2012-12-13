@@ -14,9 +14,19 @@ echo "Merging master onto origin/android-neon"
 git checkout android-neon
 git merge origin/master
 
+# Merge changes onto origin/android-neon-external
+echo "Merging master onto origin/android-neon"
+git checkout android-neon-external
+git merge origin/master
+
 # Merge changes onto origin/android-tegra2
 echo "Merging master onto origin/android-tegra2"
 git checkout android-tegra2
+git merge origin/master
+
+# Merge changes onto origin/android-tegra2-external
+echo "Merging master onto origin/android-tegra2-external"
+git checkout android-tegra2-external
 git merge origin/master
 
 # Reset to android-neon branch
