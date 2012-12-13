@@ -32,6 +32,7 @@
 #include "FileItem.h"
 #include "utils/RegExp.h"
 #include "utils/StringUtils.h"
+#include "utils/URIUtils.h"
 #include "URL.h"
 #include "utils/XMLUtils.h"
 #include "utils/TimeUtils.h"
@@ -145,13 +146,15 @@ void CExternalPlayer::Process()
     // Unwind archive names
     CURL url(m_launchFilename);
     CStdString protocol = url.GetProtocol();
-    if (protocol == "zip" || protocol == "rar"/* || protocol == "iso9660" ??*/)
+    if (protocol == "zip" || protocol == "rar"/* || protocol == "iso9660" ??*/ || protocol == "udf")
     {
       mainFile = url.GetHostName();
       archiveContent = url.GetFileName();
     }
     if (protocol == "musicdb")
       mainFile = CMusicDatabaseFile::TranslateUrl(url);
+    if (protocol == "bluray")
+      mainFile = URIUtils::AddFileToFolder(url.GetHostName(), url.GetFileName());
   }
 
   if (m_filenameReplacers.size() > 0)

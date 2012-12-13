@@ -2,15 +2,19 @@ include ../Makefile.include
 DEPS= ../Makefile.include Makefile
 
 LIBNAME=xbmc-pvr-addons
-VERSION=1dc2b52e2d219fcac4d00227fd576e5f5158d7f3
+VERSION=1409bbaa9248646372cf5c838def8c49c90e6e11
 GIT_DIR=$(TARBALLS_LOCATION)/$(LIBNAME).git
 BASE_URL=git://github.com/opdenkamp/$(LIBNAME).git
 DYLIB=$(PLATFORM)/addons/pvr.demo/.libs/libpvrdemo-addon.so
 #tell git to use the addons repo rather than xbmc's repo
 export GIT_DIR
 export GIT_WORK_TREE=$(PLATFORM)
+
+#mysql_config is remarkably useless. Help configure find the right one.
+export MYSQL_CONFIG=$(PREFIX)/bin/mysql_config
+
 # configuration settings
-CONFIGURE=./configure --prefix=$(PREFIX) --host=$(HOST)
+CONFIGURE=./configure --prefix=$(PREFIX) --host=$(HOST) --enable-addons-with-dependencies
 
 all: .installed-$(PLATFORM)
 
