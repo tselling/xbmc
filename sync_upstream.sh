@@ -13,16 +13,16 @@ echo "Merging master onto origin/android-neon"
 git checkout android-neon
 git merge origin/master
 
-echo "Merging master onto origin/android-neon-touch-xaf"
-git checkout android-neon-touch-xaf
+echo "Merging master onto origin/android-neon-xaf-touch"
+git checkout android-neon-xaf-touch
 git merge origin/master
 
 echo "Merging master onto origin/android-tegra2"
 git checkout android-tegra2
 git merge origin/master
 
-echo "Merging master onto origin/android-tegra2-touch-xaf"
-git checkout android-tegra2-touch-xaf
+echo "Merging master onto origin/android-tegra2-xaf-touch"
+git checkout android-tegra2-xaf-touch
 git merge origin/master
 
 # Reset to android-neon branch
