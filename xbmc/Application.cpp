@@ -1353,8 +1353,16 @@ bool CApplication::Initialize()
       CJSONRPC::Initialize();
 #endif
       ADDON::CAddonMgr::Get().StartServices(false);
-      StartPVRManager();
-      g_windowManager.ActivateWindow(g_SkinInfo->GetFirstWindow());
+      if (g_SkinInfo->GetFirstWindow() == WINDOW_PVR)
+      {
+        g_windowManager.ActivateWindow(WINDOW_HOME);
+        StartPVRManager(true);
+      }
+      else
+      {
+        StartPVRManager(false);
+        g_windowManager.ActivateWindow(g_SkinInfo->GetFirstWindow());
+      }
     }
 
   }
@@ -1793,10 +1801,10 @@ void CApplication::StopZeroconf()
 #endif
 }
 
-void CApplication::StartPVRManager()
+void CApplication::StartPVRManager(bool bOpenPVRWindow /* = false */)
 {
   if (g_guiSettings.GetBool("pvrmanager.enabled"))
-    g_PVRManager.Start(true);
+    g_PVRManager.Start(true, bOpenPVRWindow);
 }
 
 void CApplication::StopPVRManager()
@@ -2067,6 +2075,8 @@ void CApplication::UnloadSkin(bool forReload /* = false */)
   g_charsetConverter.reset();
 
   g_infoManager.Clear();
+
+  g_SkinInfo.reset();
 }
 
 bool CApplication::LoadUserWindows()
@@ -3448,7 +3458,11 @@ bool CApplication::Cleanup()
 
 #ifdef _LINUX
     CXHandle::DumpObjectTracker();
+
+#ifdef HAS_DVD_DRIVE
+    CLibcdio::ReleaseInstance();
 #endif
+#endif 
 #if defined(TARGET_ANDROID)
     // enable for all platforms once it's safe
     g_sectionLoader.UnloadAll();
@@ -3519,6 +3533,7 @@ void CApplication::Stop(int exitCode)
   CWebServer::UnregisterRequestHandler(&m_httpVfsHandler);
 #ifdef HAS_JSONRPC
   CWebServer::UnregisterRequestHandler(&m_httpJsonRpcHandler);
+  CJSONRPC::Cleanup();
 #endif
 #ifdef HAS_WEB_INTERFACE
   CWebServer::UnregisterRequestHandler(&m_httpWebinterfaceAddonsHandler);
@@ -3597,6 +3612,7 @@ void CApplication::Stop(int exitCode)
 
     // shutdown the AudioEngine
     CAEFactory::Shutdown();
+    CAEFactory::UnLoadEngine();
 
     CLog::Log(LOGNOTICE, "stopped");
   }
@@ -5345,7 +5361,7 @@ void CApplication::SetHardwareVolume(float hardwareVolume)
   CAEFactory::SetVolume(value);
 
   /* for platforms where we do not have AE */
-  if (m_pPlayer)
+  if (!CAEFactory::GetEngine() && m_pPlayer)
     m_pPlayer->SetVolume(g_settings.m_fVolumeLevel);
 }
 
