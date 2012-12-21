@@ -11,6 +11,8 @@ echo $TYPE
 
 cd $BUILD_DIR
 
+rm -rf addons/skin.touched
+
 cd tools/android/depends
 
 ./bootstrap || exit 1
@@ -18,7 +20,7 @@ cd tools/android/depends
 ./configure \
         --with-ndk=${TOOLS_PREFIX}/android-ndk-r7-crystax-5.beta2 \
         --with-sdk=${TOOLS_PREFIX}/android-sdk-linux \
-        --with-toolchain=${TOOLS_PREFIX}/android-sdk-linux/android-9 \
+        --with-toolchain=${TOOLS_PREFIX}/android-sdk-linux/android-9-xaf-set_top \
         --with-tarballs=${TOOLS_PREFIX}/tarballs \
         --with-sdk-platform=android-9 || exit 1
 
