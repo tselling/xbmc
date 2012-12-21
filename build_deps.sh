@@ -18,7 +18,7 @@ cd tools/android/depends
 ./configure \
         --with-ndk=${TOOLS_PREFIX}/android-ndk-r7-crystax-5.beta2 \
         --with-sdk=${TOOLS_PREFIX}/android-sdk-linux \
-        --with-toolchain=${TOOLS_PREFIX}/android-sdk-linux/android-9-external_player \
+        --with-toolchain=${TOOLS_PREFIX}/android-sdk-linux/android-9-xaf-touch \
         --with-tarballs=${TOOLS_PREFIX}/tarballs \
         --with-sdk-platform=android-9 || exit 1
 
