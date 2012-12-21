@@ -17,6 +17,10 @@ echo "Merging master onto origin/android-neon-xaf-touch"
 git checkout android-neon-xaf-touch || exit 1
 git merge origin/master || exit 1
 
+echo "Merging master onto origin/android-neon-xaf-set_top"
+git checkout android-neon-xaf-set_top || exit 1
+git merge origin/master || exit 1
+
 echo "Merging master onto origin/android-tegra2"
 git checkout android-tegra2 || exit 1
 git merge origin/master || exit 1
