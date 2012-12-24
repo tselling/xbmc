@@ -44,6 +44,7 @@ using namespace std;
 class OMXPlayerVideo : public CThread
 {
 protected:
+  CCriticalSection          m_flushLock;
   CDVDMessageQueue          m_messageQueue;
   int                       m_stream_id;
   bool                      m_open;
