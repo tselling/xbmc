@@ -88,9 +88,9 @@ XBPyThread::~XBPyThread()
 {
   stop();
   g_pythonParser.PulseGlobalEvent();
-  CLog::Log(LOGDEBUG,"waiting for python thread %d to stop", m_id);
+  CLog::Log(LOGDEBUG,"waiting for python thread %d (%s) to stop", m_id, (m_source ? m_source : "unknown script"));
   StopThread();
-  CLog::Log(LOGDEBUG,"python thread %d destructed", m_id);
+  CLog::Log(LOGDEBUG,"python thread %d (%s) destructed", m_id, (m_source ? m_source : "unknown script"));
   delete [] m_source;
   if (m_argv)
   {
@@ -98,6 +98,7 @@ XBPyThread::~XBPyThread()
       delete [] m_argv[i];
     delete [] m_argv;
   }
+  g_pythonParser.FinalizeScript();
 }
 
 void XBPyThread::setSource(const CStdString &src)
@@ -423,10 +424,8 @@ void XBPyThread::Process()
     for (countLimit = 0; languageHook->HasRegisteredAddonClasses() && countLimit < 100; countLimit++)
     {
       PyThreadState* tmpstate = Py_NewInterpreter();
-      PyThreadState* oldstate = PyThreadState_Swap(tmpstate);
-      if (PyRun_SimpleString(GC_SCRIPT) == -1)
-        CLog::Log(LOGERROR,"Failed to run the gc to clean up after running %s",m_source);
-      PyThreadState_Swap(oldstate);
+//      if (PyRun_SimpleString(GC_SCRIPT) == -1)
+//        CLog::Log(LOGERROR,"Failed to run the gc to clean up after running %s",m_source);
       Py_EndInterpreter(tmpstate);
     }
 
@@ -446,8 +445,8 @@ void XBPyThread::Process()
   // unregister the language hook
   languageHook->UnregisterMe();
 
-  PyThreadState_Swap(NULL);
   PyEval_ReleaseLock();
+
 }
 
 void XBPyThread::OnExit()
@@ -501,7 +500,7 @@ void XBPyThread::stop()
     {
       if (timeout.IsTimePast())
       {
-        CLog::Log(LOGERROR, "XBPyThread::stop - script didn't stop in %d seconds - let's kill it", PYTHON_SCRIPT_TIMEOUT / 1000);
+        CLog::Log(LOGERROR, "XBPyThread::stop - script %s didn't stop in %d seconds - let's kill it", m_source, PYTHON_SCRIPT_TIMEOUT / 1000);
         break;
       }
       // We can't empty-spin in the main thread and expect scripts to be able to
