@@ -617,7 +617,9 @@ void OMXPlayerVideo::Process()
       {
         if(m_flush)
         {
+          CSingleLock lock(m_flushLock);
           m_flush = false;
+          lock.Leave();
           break;
         }
 
@@ -685,6 +687,7 @@ void OMXPlayerVideo::Process()
 
 void OMXPlayerVideo::Flush()
 {
+  CSingleLock lock(m_flushLock);
   m_flush = true;
   m_messageQueue.Flush();
   m_messageQueue.Put(new CDVDMsg(CDVDMsg::GENERAL_FLUSH), 1);
