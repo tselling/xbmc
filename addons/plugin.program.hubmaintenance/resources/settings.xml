@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<settings>
+
+<category label="Logger Email">
+    <setting type="lsep" label="32000"/>
+    <setting type="lsep" label="32001"/>
+    <setting type="lsep" label="32002"/>
+    <setting type="lsep" label="32003"/>
+    <setting type="lsep" label="32004"/>
+    <setting type="lsep" label=""/>
+    <setting id="email" type="text" label="31000"/>
+    <setting id="skip_oldlog" type="bool" label="31001" default="true"/>
+</category>	
+
+  <!-- Auto View -->
+    <category label="Auto-View">
+		<setting id="auto-view" type="bool" label="Enable Auto View" default="false"/>
+		<setting id="MAIN" type="number" label="MAIN" default="500" enable="!eq(-1,false)"/>
+		<setting id="SUB" type="number" label="Sub Catergories" default="503" enable="!eq(-2,false)"/>
+		<setting id="videos" type="number" label="How To Videos" default="500" enable="!eq(-3,false)"/>
+   	</category>	   	
+  </settings>
