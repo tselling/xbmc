@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<addon id="plugin.audio.radioreference"
+	name="RadioReference.com"
+	version="1.0.3"
+	provider-name="xbmchub.com">
+  <requires>
+    <import addon="xbmc.python" version="2.0"/>
+  </requires>
+  <extension point="xbmc.python.pluginsource" library="default.py">
+    <provides>audio</provides>
+  </extension>
+  <extension point="xbmc.addon.metadata">
+    <summary lang="en">RadioReference.com</summary>
+    <description lang="en">Your complete reference source</description>
+    <platform>all</platform>
+  </extension>
+</addon>
