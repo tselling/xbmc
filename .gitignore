@@ -543,7 +543,6 @@ lib/cmyth/Makefile
 /userdata/playlists
 /userdata/Thumbnails
 /userdata/cache
-/userdata/guisettings.xml
 /userdata/avpacksettings.xml
 
 # /visualisations/
