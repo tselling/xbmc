@@ -41,9 +41,9 @@
         <setting type="string" name="skin.confluence.HomePictureButton3"></setting>
         <setting type="string" name="skin.confluence.HomePictureButton4"></setting>
         <setting type="string" name="skin.confluence.HomePictureButton5"></setting>
-        <setting type="string" name="skin.confluence.HomeProgramButton1">script.navi-x</setting>
-        <setting type="string" name="skin.confluence.HomeProgramButton2">plugin.program.hubmaintenance</setting>
-        <setting type="string" name="skin.confluence.HomeProgramButton3"></setting>
+        <setting type="string" name="skin.confluence.HomeProgramButton1">plugin.program.nnandroidapps</setting>
+        <setting type="string" name="skin.confluence.HomeProgramButton2">script.navi-x</setting>
+        <setting type="string" name="skin.confluence.HomeProgramButton3">plugin.program.hubmaintenance</setting>
         <setting type="string" name="skin.confluence.HomeProgramButton4"></setting>
         <setting type="string" name="skin.confluence.HomeProgramButton5"></setting>
         <setting type="string" name="skin.confluence.Startup_Playlist_Path"></setting>
