@@ -45,7 +45,7 @@
         <setting type="string" name="skin.confluence.HomeProgramButton2">script.navi-x</setting>
         <setting type="string" name="skin.confluence.HomeProgramButton3">plugin.program.hubmaintenance</setting>
         <setting type="string" name="skin.confluence.HomeProgramButton4"></setting>
-        <setting type="string" name="skin.confluence.HomeProgramButton5"></setting>
+        <setting type="string" name="skin.confluence.HomeProgramButton5">plugin.program.nnandroidsettings</setting>
         <setting type="string" name="skin.confluence.Startup_Playlist_Path"></setting>
         <setting type="string" name="skin.confluence.LyricScript_Path"></setting>
         <setting type="string" name="skin.confluence.SubtitleScript_Path">script.xbmc.subtitles</setting>
