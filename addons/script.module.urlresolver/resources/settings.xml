@@ -133,6 +133,12 @@
 <category label="daclips">
 <setting id="DaclipsResolver_priority" type="number" label="Priority" default="100"/>
 </category>
+<category label="AllDebrid">
+<setting id="AllDebridResolver_priority" type="number" label="Priority" default="100"/>
+<setting id="AllDebridResolver_login" type="bool" label="login" default="false"/>
+<setting id="AllDebridResolver_username" enable="eq(-1,true)" type="text" label="username" default=""/>
+<setting id="AllDebridResolver_password" enable="eq(-2,true)" type="text" label="password" option="hidden" default=""/>
+</category>
 <category label="2gbhosting">
 <setting id="TwogbhostingResolver_priority" type="number" label="Priority" default="100"/>
 </category>
