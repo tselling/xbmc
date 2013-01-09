@@ -29,12 +29,12 @@
         <setting type="bool" name="skin.confluence.HomeMenuNoMusicButton">false</setting>
         <setting type="bool" name="skin.confluence.HomeMenuNoProgramsButton">false</setting>
         <setting type="bool" name="skin.confluence.AutoScroll">false</setting>
+        <setting type="bool" name="skin.confluence.FirstTimeRun">true</setting>
         <setting type="bool" name="skin.confluence.Show_SlideShow_Paused">false</setting>
         <setting type="bool" name="skin.confluence.WindowedTrailer">false</setting>
         <setting type="bool" name="skin.confluence.HideFilenameFlagging">false</setting>
         <setting type="bool" name="skin.confluence.ActivateTvTunes">false</setting>
         <setting type="bool" name="skin.confluence.HideVisualizationFanart">false</setting>
-        <setting type="bool" name="skin.confluence.FirstTimeRun">true</setting>
         <setting type="bool" name="skin.confluence.View508HideInfo">false</setting>
         <setting type="string" name="skin.confluence.CustomBackgroundPath"></setting>
         <setting type="string" name="skin.confluence.HomeVideosButton1">plugin.video.1channel</setting>
@@ -52,8 +52,8 @@
         <setting type="string" name="skin.confluence.HomePictureButton3"></setting>
         <setting type="string" name="skin.confluence.HomePictureButton4"></setting>
         <setting type="string" name="skin.confluence.HomePictureButton5"></setting>
-        <setting type="string" name="skin.confluence.HomeProgramButton1">plugin.program.nnandroidapps</setting>
-        <setting type="string" name="skin.confluence.HomeProgramButton2">plugin.program.hubmaintenance</setting>
+        <setting type="string" name="skin.confluence.HomeProgramButton1">script.navi-x</setting>
+        <setting type="string" name="skin.confluence.HomeProgramButton2">plugin.program.nnandroidapps</setting>
         <setting type="string" name="skin.confluence.HomeProgramButton3">plugin.program.nnandroidsettings</setting>
         <setting type="string" name="skin.confluence.HomeProgramButton4"></setting>
         <setting type="string" name="skin.confluence.HomeProgramButton5"></setting>
