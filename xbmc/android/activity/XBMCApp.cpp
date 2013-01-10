@@ -746,8 +746,8 @@ bool CXBMCApp::StartActivityWithExtra(const string &package, const string &inten
   jobject oActivity = m_activity->clazz;
   jclass cActivity = env->GetObjectClass(oActivity);
   
-  // Intent oIntent = new Intent(Intent.ACTION_VIEW);
-  //    android.intent.action.VIEW
+  // Java equivalent for following JNI
+  //    Intent oIntent = new Intent(Intent.ACTION_VIEW);
   jclass cIntent = env->FindClass("android/content/Intent");
   jmethodID midIntentCtor = env->GetMethodID(cIntent, "<init>", "(Ljava/lang/String;)V");
   jstring sIntent = env->NewStringUTF(intent.c_str());
@@ -757,7 +757,8 @@ bool CXBMCApp::StartActivityWithExtra(const string &package, const string &inten
   jobject oUri;
   if (dataURI.size())
   {
-    // Uri oUri = Uri.parse(sPath);
+    // Java equivalent for the following JNI
+    //   Uri oUri = Uri.parse(sPath);
     jclass cUri = env->FindClass("android/net/Uri");
     jmethodID midUriParse = env->GetStaticMethodID(cUri, "parse", "(Ljava/lang/String;)Landroid/net/Uri;");
     jstring sPath = env->NewStringUTF(dataURI.c_str());
@@ -769,20 +770,23 @@ bool CXBMCApp::StartActivityWithExtra(const string &package, const string &inten
     //   This allows opening market links or external players using the same method
     if (dataType.size())
     {
-      // oIntent.setDataAndType(oUri, "video/*");
+      // Java equivalent for the following JNI
+      //   oIntent.setDataAndType(oUri, "video/*");
       jmethodID midIntentSetDataAndType = env->GetMethodID(cIntent, "setDataAndType", "(Landroid/net/Uri;Ljava/lang/String;)Landroid/content/Intent;");
       jstring sMimeType = env->NewStringUTF(dataType.c_str());
       oIntent = env->CallObjectMethod(oIntent, midIntentSetDataAndType, oUri, sMimeType);
       env->DeleteLocalRef(sMimeType);
     }
     else {
-      // oIntent.setData(oUri);
+      // Java equivalent for the following JNI
+      //   oIntent.setData(oUri);
       jmethodID midIntentSetData = env->GetMethodID(cIntent, "setData", "(Landroid/net/Uri;)Landroid/content/Intent;");
       oIntent = env->CallObjectMethod(oIntent, midIntentSetData, oUri);
     }
   }
-
-  // oIntent.setPackage(sPackage);
+  
+  // Java equivalent for the following JNI
+  //   oIntent.setPackage(sPackage);
   jstring sPackage = env->NewStringUTF(package.c_str());
   jmethodID mSetPackage = env->GetMethodID(cIntent, "setPackage", "(Ljava/lang/String;)Landroid/content/Intent;");
   oIntent = env->CallObjectMethod(oIntent, mSetPackage, sPackage);
@@ -794,8 +798,8 @@ bool CXBMCApp::StartActivityWithExtra(const string &package, const string &inten
   env->DeleteLocalRef(cIntent);
   env->DeleteLocalRef(sPackage);
   
-
-  // startActivity(oIntent);
+  // Java equivalent for the following JNI
+  //   startActivity(oIntent);
   jmethodID mStartActivity = env->GetMethodID(cActivity, "startActivity", "(Landroid/content/Intent;)V");
   env->CallVoidMethod(oActivity, mStartActivity, oIntent);
   env->DeleteLocalRef(cActivity);
