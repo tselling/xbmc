@@ -1,0 +1,65 @@
+<settings>
+    <general>
+        <addonautoupdate>true</addonautoupdate>
+        <addonnotifications>true</addonnotifications>
+        <addonforeignfilter>false</addonforeignfilter>
+    </general>
+    <services>
+        <airplay>true</airplay>
+        <airplaypassword></airplaypassword>
+        <devicename>XBAN</devicename>
+        <useairplaypassword>false</useairplaypassword>
+    </services>
+    <skinsettings>
+        <setting type="bool" name="skin.confluence.Use_Startup_Playlist">false</setting>
+        <setting type="bool" name="skin.confluence.UseCustomBackground">false</setting>
+        <setting type="bool" name="skin.confluence.HideBackGroundFanart">true</setting>
+        <setting type="bool" name="skin.confluence.ShowBackgroundVideo">false</setting>
+        <setting type="bool" name="skin.confluence.ShowBackgroundVis">false</setting>
+        <setting type="bool" name="skin.confluence.HomepageHideRecentlyAddedVideo">false</setting>
+        <setting type="bool" name="skin.confluence.HomepageHideRecentlyAddedAlbums">false</setting>
+        <setting type="bool" name="skin.confluence.homepageWeatherinfo">false</setting>
+        <setting type="bool" name="skin.confluence.homepageMusicinfo">false</setting>
+        <setting type="bool" name="skin.confluence.homepageVideoinfo">false</setting>
+        <setting type="bool" name="skin.confluence.HomeMenuNoMovieButton">false</setting>
+        <setting type="bool" name="skin.confluence.HomeMenuNoTVShowButton">false</setting>
+        <setting type="bool" name="skin.confluence.HomeMenuNoWeatherButton">false</setting>
+        <setting type="bool" name="skin.confluence.HomeMenuNoPicturesButton">false</setting>
+        <setting type="bool" name="skin.confluence.HomeMenuNoVideosButton">false</setting>
+        <setting type="bool" name="skin.confluence.HomeMenuNoMusicButton">false</setting>
+        <setting type="bool" name="skin.confluence.HomeMenuNoProgramsButton">false</setting>
+        <setting type="bool" name="skin.confluence.AutoScroll">false</setting>
+        <setting type="bool" name="skin.confluence.FirstTimeRun">true</setting>
+        <setting type="bool" name="skin.confluence.Show_SlideShow_Paused">false</setting>
+        <setting type="bool" name="skin.confluence.WindowedTrailer">false</setting>
+        <setting type="bool" name="skin.confluence.HideFilenameFlagging">false</setting>
+        <setting type="bool" name="skin.confluence.ActivateTvTunes">false</setting>
+        <setting type="bool" name="skin.confluence.HideVisualizationFanart">false</setting>
+        <setting type="bool" name="skin.confluence.View508HideInfo">false</setting>
+        <setting type="string" name="skin.confluence.CustomBackgroundPath"></setting>
+        <setting type="string" name="skin.confluence.HomeVideosButton1">plugin.video.1channel</setting>
+        <setting type="string" name="skin.confluence.HomeVideosButton2">plugin.video.projectfreetv</setting>
+        <setting type="string" name="skin.confluence.HomeVideosButton3">plugin.video.icefilms</setting>
+        <setting type="string" name="skin.confluence.HomeVideosButton4">plugin.video.tvlinks</setting>
+        <setting type="string" name="skin.confluence.HomeVideosButton5">plugin.video.tubeplus</setting>
+        <setting type="string" name="skin.confluence.HomeMusicButton1"></setting>
+        <setting type="string" name="skin.confluence.HomeMusicButton2"></setting>
+        <setting type="string" name="skin.confluence.HomeMusicButton3"></setting>
+        <setting type="string" name="skin.confluence.HomeMusicButton4"></setting>
+        <setting type="string" name="skin.confluence.HomeMusicButton5"></setting>
+        <setting type="string" name="skin.confluence.HomePictureButton1"></setting>
+        <setting type="string" name="skin.confluence.HomePictureButton2"></setting>
+        <setting type="string" name="skin.confluence.HomePictureButton3"></setting>
+        <setting type="string" name="skin.confluence.HomePictureButton4"></setting>
+        <setting type="string" name="skin.confluence.HomePictureButton5"></setting>
+        <setting type="string" name="skin.confluence.HomeProgramButton1">script.navi-x</setting>
+        <setting type="string" name="skin.confluence.HomeProgramButton2">plugin.program.nnandroidapps</setting>
+        <setting type="string" name="skin.confluence.HomeProgramButton3">plugin.program.nnandroidsettings</setting>
+        <setting type="string" name="skin.confluence.HomeProgramButton4"></setting>
+        <setting type="string" name="skin.confluence.HomeProgramButton5"></setting>
+        <setting type="string" name="skin.confluence.Startup_Playlist_Path"></setting>
+        <setting type="string" name="skin.confluence.LyricScript_Path"></setting>
+        <setting type="string" name="skin.confluence.SubtitleScript_Path"></setting>
+        <setting type="string" name="skin.confluence.HomeProgramButton6"></setting>
+    </skinsettings>
+</settings>
