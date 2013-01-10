@@ -98,6 +98,10 @@ using namespace ADDON;
 using namespace MEDIA_DETECT;
 #endif
 
+#if defined(TARGET_ANDROID)
+#include "xbmc/android/activity/XBMCApp.h"
+#endif
+
 typedef struct
 {
   const char* command;
@@ -216,6 +220,9 @@ const BUILT_IN commands[] = {
   { "ToggleDebug",                false,  "Enables/disables debug mode" },
   { "StartPVRManager",            false,  "(Re)Starts the PVR manager" },
   { "StopPVRManager",             false,  "Stops the PVR manager" },
+#if defined(TARGET_ANDROID)
+  { "StartActivity",              true,  "Launch an Android native application" },
+#endif
 };
 
 bool CBuiltins::HasCommand(const CStdString& execString)
@@ -1637,6 +1644,17 @@ int CBuiltins::Execute(const CStdString& execString)
   {
     g_application.StopPVRManager();
   }
+#if defined(TARGET_ANDROID)
+  else if (execute.Equals("StartActivity") && params.size() >= 1)
+  {
+    if (!CXBMCApp::StartActivity(params[0].c_str()))
+    {
+      CLog::Log(LOGERROR, "Error launching activity: %s", params[0].c_str());
+    }
+    else
+      CLog::Log(LOGERROR, "XBMC.StartActivity called with no parameters");
+  }
+#endif
   else
     return -1;
   return 0;
