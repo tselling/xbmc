@@ -777,7 +777,8 @@ bool CXBMCApp::StartActivityWithExtra(const string &package, const string &inten
       oIntent = env->CallObjectMethod(oIntent, midIntentSetDataAndType, oUri, sMimeType);
       env->DeleteLocalRef(sMimeType);
     }
-    else {
+    else 
+    {
       // Java equivalent for the following JNI
       //   oIntent.setData(oUri);
       jmethodID midIntentSetData = env->GetMethodID(cIntent, "setData", "(Landroid/net/Uri;)Landroid/content/Intent;");
