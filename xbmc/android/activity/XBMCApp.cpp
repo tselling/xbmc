@@ -740,8 +740,6 @@ bool CXBMCApp::StartActivityWithExtra(const string &package, const string &inten
   jthrowable exc;
   JNIEnv *env = NULL;
   AttachCurrentThread(&env);
-  jobject oActivity = m_activity->clazz;
-  jclass cActivity = env->GetObjectClass(oActivity);
   
   // Java equivalent for following JNI
   //    Intent oIntent = new Intent(Intent.ACTION_VIEW);
@@ -795,9 +793,11 @@ bool CXBMCApp::StartActivityWithExtra(const string &package, const string &inten
   }
   env->DeleteLocalRef(cIntent);
   env->DeleteLocalRef(sPackage);
-  
+ 
   // Java equivalent for the following JNI
   //   startActivity(oIntent);
+  jobject oActivity = m_activity->clazz;
+  jclass cActivity = env->GetObjectClass(oActivity);
   jmethodID mStartActivity = env->GetMethodID(cActivity, "startActivity", "(Landroid/content/Intent;)V");
   env->CallVoidMethod(oActivity, mStartActivity, oIntent);
   env->DeleteLocalRef(cActivity);
