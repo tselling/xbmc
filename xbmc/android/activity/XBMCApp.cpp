@@ -735,10 +735,7 @@ bool CXBMCApp::StartActivityWithExtra(const string &package, const string &inten
   if (!m_activity || !package.size() || !intent.size())
    return false;
 
-  CLog::Log(LOGDEBUG, "CXBMCApp::StartActivity package: '%s'", package.c_str());
-  CLog::Log(LOGDEBUG, "CXBMCApp::StartActivity intent: '%s'", intent.c_str());
-  CLog::Log(LOGDEBUG, "CXBMCApp::StartActivity dataType: '%s'", dataType.c_str());
-  CLog::Log(LOGDEBUG, "CXBMCApp::StartActivity dataURI: '%s'", dataURI.c_str());
+  CLog::Log(LOGDEBUG, "CXBMCApp::StartActivity package: '%s' intent: '%s' dataType: '%s' dataURI: '%s'", package.c_str(), intent.c_str(), dataType.c_str(), dataURI.c_str());
 
   jthrowable exc;
   JNIEnv *env = NULL;
