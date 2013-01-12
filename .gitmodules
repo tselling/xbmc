@@ -4,7 +4,7 @@
 	ignore = all
 [submodule "nnandroidapps"]
 	path = addons/plugin.program.nnandroidapps
-	url = git://github.com/mcrosson/nnandroidapps.git
+	url = git://github.com/nuskunetworks/nnandroidapps.git
 [submodule "addons/plugin.program.nnandroidsettings"]
 	path = addons/plugin.program.nnandroidsettings
-	url = git://github.com/mcrosson/nnandroidsettings.git
+	url = git://github.com/nuskunetworks/nnandroidsettings.git
