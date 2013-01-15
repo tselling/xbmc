@@ -1,10 +1,9 @@
-[submodule "touched"]
-	path = addons/skin.touched
-	url = git://github.com/xbmc/skin.touched.git
-	ignore = all
 [submodule "addons/plugin.program.nnandroidsettings"]
 	path = addons/plugin.program.nnandroidsettings
 	url = git://github.com/nuskunetworks/nnandroidsettings.git
 [submodule "addons/plugin.program.nnandroidapps"]
 	path = addons/plugin.program.nnandroidapps
 	url = git://github.com/nuskunetworks/nnandroidapps.git
+[submodule "addons/skin.touched"]
+	path = addons/skin.touched
+	url = git://github.com/xbmc/skin.touched.git
