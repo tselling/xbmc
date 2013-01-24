@@ -47,6 +47,16 @@
 			<playcountminimumtime>120</playcountminimumtime>
 		</player>
 
+		<!-- VLC Player definition -->
+		<player name="VLCPlayer" type="ExternalPlayer" audio="false" video="true">
+			<!-- Android intent -->
+			<filename>com.vlcforandroid.vlcdirectprofree</filename>
+			<!-- Hide XBMC -->
+			<hidexbmc>true</hidexbmc>
+			<!-- After 2 minutes bump the play count of the item in XBMC -->
+			<playcountminimumtime>120</playcountminimumtime>
+		</player>
+
 		<!-- DicePlayer Paid definition -->
 		<player name="DicePlayerPaid" type="ExternalPlayer" audio="false" video="true">
 			<!-- Android intent -->
@@ -146,6 +156,16 @@
 			<!-- After 2 minutes bump the play count of the item in XBMC -->
 			<playcountminimumtime>120</playcountminimumtime>
 	    </player>
+
+		<!-- Daroon Player definition -->
+		<player name="DaroonPlayer" type="ExternalPlayer" audio="false" video="true">
+			<!-- Android intent -->
+			<filename>com.daroonplayer.dsplayer</filename>
+			<!-- Hide XBMC -->
+			<hidexbmc>true</hidexbmc>
+			<!-- After 2 minutes bump the play count of the item in XBMC -->
+			<playcountminimumtime>120</playcountminimumtime>
+		</player>
 	</players>
 	<!-- Rules for which external player to use -->
 	<!-- MX Player Free is default
