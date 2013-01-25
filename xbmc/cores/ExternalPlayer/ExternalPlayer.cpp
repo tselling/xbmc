@@ -48,7 +48,7 @@
   #include "input/linux/LIRC.h"
 #endif
 #if defined(TARGET_ANDROID)
-	#include "android/activity/XBMCApp.h"
+  #include "android/activity/XBMCApp.h"
 #endif
 
 // If the process ends in less than this time (ms), we assume it's a launcher
@@ -314,10 +314,10 @@ void CExternalPlayer::Process()
   BOOL ret = TRUE;
 #if defined(_WIN32)
   ret = ExecuteAppW32(strFName.c_str(),strFArgs.c_str());
-#elif !defined(TARGET_ANDROID) && (defined(_LINUX) || defined(TARGET_DARWIN_OSX))
-  ret = ExecuteAppLinux(strFArgs.c_str());
 #elif defined(TARGET_ANDROID)
-  ret = ExecuteAppAndroid(m_filename.c_str(),mainFile.c_str());
+  ret = ExecuteAppAndroid(m_filename.c_str(), mainFile.c_str());
+#elif defined(_LINUX) || defined(TARGET_DARWIN_OSX)
+  ret = ExecuteAppLinux(strFArgs.c_str());
 #endif
   int64_t elapsedMillis = XbmcThreads::SystemClockMillis() - m_playbackStartTime;
 
@@ -448,7 +448,7 @@ BOOL CExternalPlayer::ExecuteAppW32(const char* strPath, const char* strSwitches
 }
 #endif
 
-#if defined(_LINUX) || defined(TARGET_DARWIN_OSX)
+#if !defined(TARGET_ANDROID) && (defined(_LINUX) || defined(TARGET_DARWIN_OSX))
 BOOL CExternalPlayer::ExecuteAppLinux(const char* strSwitches)
 {
   CLog::Log(LOGNOTICE, "%s: %s", __FUNCTION__, strSwitches);
@@ -479,7 +479,7 @@ BOOL CExternalPlayer::ExecuteAppAndroid(const char* strSwitches,const char* strP
 {
   CLog::Log(LOGNOTICE, "%s: %s", __FUNCTION__, strSwitches);
 
-  int ret = CXBMCApp::StartActivityWithExtra(strSwitches,strPath);
+  int ret = CXBMCApp::StartActivity(strSwitches, "android.intent.action.VIEW", "video/*", strPath);
 
   if (ret != 0)
   {
