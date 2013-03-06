@@ -216,7 +216,7 @@ const BUILT_IN commands[] = {
   { "StartPVRManager",            false,  "(Re)Starts the PVR manager" },
   { "StopPVRManager",             false,  "Stops the PVR manager" },
 #if defined(TARGET_ANDROID)
-  { "StartActivity",              true,  "Launch an Android native application" },
+  { "StartAndroidActivity",       true,   "Launch an Android native app with the given package name.  Optional parms (in order): intent, dataType, dataURI." },
 #endif
 };
 
@@ -1631,17 +1631,10 @@ int CBuiltins::Execute(const CStdString& execString)
   {
     g_application.StopPVRManager();
   }
-#if defined(TARGET_ANDROID)
-  else if (execute.Equals("StartActivity") && params.size() >= 1)
+  else if (execute.Equals("StartAndroidActivity") && params.size() > 0)
   {
-    if (!CXBMCApp::StartActivity(params[0].c_str()))
-    {
-      CLog::Log(LOGERROR, "Error launching activity: %s", params[0].c_str());
-    }
-    else
-      CLog::Log(LOGERROR, "XBMC.StartActivity called with no parameters");
+    CApplicationMessenger::Get().StartAndroidActivity(params);
   }
-#endif
   else
     return -1;
   return 0;
