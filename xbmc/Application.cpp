@@ -1652,7 +1652,7 @@ bool CApplication::StartJSONRPCServer()
     if (CTCPServer::StartServer(g_advancedSettings.m_jsonTcpPort, g_guiSettings.GetBool("services.esallinterfaces")))
     {
       std::vector<std::pair<std::string, std::string> > txt;
-      CZeroconf::GetInstance()->PublishService("servers.jsonrpc-tpc", "_xbmc-jsonrpc._tcp", g_infoManager.GetLabel(SYSTEM_FRIENDLY_NAME), g_advancedSettings.m_jsonTcpPort, txt);
+      CZeroconf::GetInstance()->PublishService("servers.jsonrpc-tcp", "_xbmc-jsonrpc._tcp", g_infoManager.GetLabel(SYSTEM_FRIENDLY_NAME), g_advancedSettings.m_jsonTcpPort, txt);
       return true;
     }
     else
@@ -2749,6 +2749,10 @@ bool CApplication::OnAction(const CAction &action)
 
     return true;
   }
+
+  // forward action to g_PVRManager and break if it was able to handle it
+  if (g_PVRManager.OnAction(action))
+    return true;
 
   if (IsPlaying())
   {
