@@ -203,34 +203,11 @@ public class Splash extends Activity {
 	}
 
 	private boolean ParseCpuFeature() {
-		ProcessBuilder cmd;
-
-		try {
-			String[] args = { "/system/bin/cat", "/proc/cpuinfo" };
-			cmd = new ProcessBuilder(args);
-
-			Process process = cmd.start();
-			InputStream in = process.getInputStream();
-			byte[] re = new byte[1024];
-			while (in.read(re) != -1) {
-				mCpuinfo = mCpuinfo + new String(re);
-			}
-			in.close();
-		} catch (IOException ex) {
-			ex.printStackTrace();
-			return false;
-		}
 		return true;
 	}
 
 	private boolean CheckCpuFeature(String feat) {
-        if ("neon".equals(feat)) {
-            return true;
-        }
-		final Pattern FeaturePattern = Pattern.compile(":.*?\\s" + feat
-				+ "(?:\\s|$)");
-		Matcher m = FeaturePattern.matcher(mCpuinfo);
-		return m.find();
+        return true;
 	}
 
 	protected void startXBMC() {
@@ -301,5 +278,4 @@ public class Splash extends Activity {
 
 		new Work(this).execute();
 	}
-
 }
