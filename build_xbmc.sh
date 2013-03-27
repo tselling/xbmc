@@ -11,7 +11,7 @@ echo $TYPE
 
 cd $BUILD_DIR
 
-make -j8 -C tools/depends/target/xbmc || exit 1
+make -C tools/depends/target/xbmc || exit 1
 
 make || exit 1
 
