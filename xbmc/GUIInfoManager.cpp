@@ -43,7 +43,9 @@
 #include "windowing/WindowingFactory.h"
 #include "powermanagement/PowerManager.h"
 #include "settings/AdvancedSettings.h"
+#include "settings/MediaSettings.h"
 #include "settings/Settings.h"
+#include "settings/SkinSettings.h"
 #include "guilib/LocalizeStrings.h"
 #include "utils/CharsetConverter.h"
 #include "utils/CPUInfo.h"
@@ -1017,12 +1019,12 @@ int CGUIInfoManager::TranslateSingleString(const CStdString &strCondition)
         if (prop.name == "string")
         {
           if (prop.num_params() == 2)
-            return AddMultiInfo(GUIInfo(SKIN_STRING, g_settings.TranslateSkinString(prop.param(0)), ConditionalStringParameter(prop.param(1))));
+            return AddMultiInfo(GUIInfo(SKIN_STRING, CSkinSettings::Get().TranslateString(prop.param(0)), ConditionalStringParameter(prop.param(1))));
           else
-            return AddMultiInfo(GUIInfo(SKIN_STRING, g_settings.TranslateSkinString(prop.param(0))));
+            return AddMultiInfo(GUIInfo(SKIN_STRING, CSkinSettings::Get().TranslateString(prop.param(0))));
         }
         if (prop.name == "hassetting")
-          return AddMultiInfo(GUIInfo(SKIN_BOOL, g_settings.TranslateSkinBool(prop.param(0))));
+          return AddMultiInfo(GUIInfo(SKIN_BOOL, CSkinSettings::Get().TranslateBool(prop.param(0))));
         else if (prop.name == "hastheme")
           return AddMultiInfo(GUIInfo(SKIN_HAS_THEME, ConditionalStringParameter(prop.param(0))));
       }
@@ -1165,8 +1167,10 @@ TIME_FORMAT CGUIInfoManager::TranslateTimeFormat(const CStdString &format)
   else if (format.Equals("hh:mm")) return TIME_FORMAT_HH_MM;
   else if (format.Equals("mm:ss")) return TIME_FORMAT_MM_SS;
   else if (format.Equals("hh:mm:ss")) return TIME_FORMAT_HH_MM_SS;
+  else if (format.Equals("hh:mm:ss xx")) return TIME_FORMAT_HH_MM_SS_XX;
   else if (format.Equals("h")) return TIME_FORMAT_H;
   else if (format.Equals("h:mm:ss")) return TIME_FORMAT_H_MM_SS;
+  else if (format.Equals("h:mm:ss xx")) return TIME_FORMAT_H_MM_SS_XX;
   else if (format.Equals("xx")) return TIME_FORMAT_XX;
   return TIME_FORMAT_GUESS;
 }
@@ -1270,10 +1274,10 @@ CStdString CGUIInfoManager::GetLabel(int info, int contextWindow, CStdString *fa
     strLabel.Format("%2.1f dB", CAEUtil::PercentToGain(g_settings.m_fVolumeLevel));
     break;
   case PLAYER_SUBTITLE_DELAY:
-    strLabel.Format("%2.3f s", g_settings.m_currentVideoSettings.m_SubtitleDelay);
+    strLabel.Format("%2.3f s", CMediaSettings::Get().GetCurrentVideoSettings().m_SubtitleDelay);
     break;
   case PLAYER_AUDIO_DELAY:
-    strLabel.Format("%2.3f s", g_settings.m_currentVideoSettings.m_AudioDelay);
+    strLabel.Format("%2.3f s", CMediaSettings::Get().GetCurrentVideoSettings().m_AudioDelay);
     break;
   case PLAYER_CHAPTER:
     if(g_application.IsPlaying() && g_application.m_pPlayer)
@@ -2442,15 +2446,15 @@ bool CGUIInfoManager::GetMultiInfoBool(const GUIInfo &info, int contextWindow, c
     {
       case SKIN_BOOL:
         {
-          bReturn = g_settings.GetSkinBool(info.GetData1());
+          bReturn = CSkinSettings::Get().GetBool(info.GetData1());
         }
         break;
       case SKIN_STRING:
         {
           if (info.GetData2())
-            bReturn = g_settings.GetSkinString(info.GetData1()).Equals(m_stringParameters[info.GetData2()]);
+            bReturn = StringUtils::EqualsNoCase(CSkinSettings::Get().GetString(info.GetData1()), m_stringParameters[info.GetData2()]);
           else
-            bReturn = !g_settings.GetSkinString(info.GetData1()).IsEmpty();
+            bReturn = !CSkinSettings::Get().GetString(info.GetData1()).empty();
         }
         break;
       case SKIN_HAS_THEME:
@@ -2636,7 +2640,7 @@ bool CGUIInfoManager::GetMultiInfoBool(const GUIInfo &info, int contextWindow, c
           {
             CGUIWindow *window = GetWindowWithCondition(contextWindow, WINDOW_CONDITION_IS_MEDIA_WINDOW);
             if (window)
-              bReturn = g_settings.GetWatchMode(((CGUIMediaWindow *)window)->CurrentDirectory().GetContent()) == VIDEO_SHOW_UNWATCHED;
+              bReturn = CMediaSettings::Get().GetWatchedMode(((CGUIMediaWindow *)window)->CurrentDirectory().GetContent()) == WatchedModeUnwatched;
           }
         }
         break;
@@ -2843,11 +2847,11 @@ CStdString CGUIInfoManager::GetMultiInfoLabel(const GUIInfo &info, int contextWi
 {
   if (info.m_info == SKIN_STRING)
   {
-    return g_settings.GetSkinString(info.GetData1());
+    return CSkinSettings::Get().GetString(info.GetData1());
   }
   else if (info.m_info == SKIN_BOOL)
   {
-    bool bInfo = g_settings.GetSkinBool(info.GetData1());
+    bool bInfo = CSkinSettings::Get().GetBool(info.GetData1());
     if (bInfo)
       return g_localizeStrings.Get(20122);
   }
@@ -3151,11 +3155,15 @@ CStdString CGUIInfoManager::LocalizeTime(const CDateTime &time, TIME_FORMAT form
   case TIME_FORMAT_HH_MM_XX:
       return time.GetAsLocalizedTime(use12hourclock ? "h:mm xx" : "HH:mm", false);
   case TIME_FORMAT_HH_MM_SS:
-    return time.GetAsLocalizedTime("", true);
+    return time.GetAsLocalizedTime("hh:mm:ss", true);
+  case TIME_FORMAT_HH_MM_SS_XX:
+    return time.GetAsLocalizedTime("hh:mm:ss xx", true);
   case TIME_FORMAT_H:
     return time.GetAsLocalizedTime("h", false);
   case TIME_FORMAT_H_MM_SS:
     return time.GetAsLocalizedTime("h:mm:ss", true);
+  case TIME_FORMAT_H_MM_SS_XX:
+    return time.GetAsLocalizedTime("h:mm:ss xx", true);
   case TIME_FORMAT_XX:
     return use12hourclock ? time.GetAsLocalizedTime("xx", false) : "";
   default:
