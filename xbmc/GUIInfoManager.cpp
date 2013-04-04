@@ -349,6 +349,7 @@ const infomap videoplayer[] =    {{ "title",            VIDEOPLAYER_TITLE },
                                   { "season",           VIDEOPLAYER_SEASON },
                                   { "rating",           VIDEOPLAYER_RATING },
                                   { "ratingandvotes",   VIDEOPLAYER_RATING_AND_VOTES },
+                                  { "votes",            VIDEOPLAYER_VOTES },
                                   { "tvshowtitle",      VIDEOPLAYER_TVSHOW },
                                   { "premiered",        VIDEOPLAYER_PREMIERED },
                                   { "studio",           VIDEOPLAYER_STUDIO },
@@ -445,6 +446,7 @@ const infomap listitem_labels[]= {{ "thumb",            LISTITEM_THUMB },
                                   { "size",             LISTITEM_SIZE },
                                   { "rating",           LISTITEM_RATING },
                                   { "ratingandvotes",   LISTITEM_RATING_AND_VOTES },
+                                  { "votes",            LISTITEM_VOTES },
                                   { "programcount",     LISTITEM_PROGRAM_COUNT },
                                   { "duration",         LISTITEM_DURATION },
                                   { "isselected",       LISTITEM_ISSELECTED },
@@ -2797,12 +2799,13 @@ bool CGUIInfoManager::GetMultiInfoBool(const GUIInfo &info, int contextWindow, c
           if (info.GetData1() == 1)
           { // relative index
             if (g_playlistPlayer.GetCurrentPlaylist() != PLAYLIST_MUSIC)
-              return false;
+            {
+              bReturn = false;
+              break;
+            }
             index += g_playlistPlayer.GetCurrentSong();
           }
-          if (index >= 0 && index < g_playlistPlayer.GetPlaylist(PLAYLIST_MUSIC).size())
-            return true;
-          return false;
+          bReturn = (index >= 0 && index < g_playlistPlayer.GetPlaylist(PLAYLIST_MUSIC).size());
         }
         break;
     }
@@ -3600,6 +3603,8 @@ CStdString CGUIInfoManager::GetVideoLabel(int item)
         return strRatingAndVotes;
       }
       break;
+    case VIDEOPLAYER_VOTES:
+      return m_currentFile->GetVideoInfoTag()->m_strVotes;
     case VIDEOPLAYER_YEAR:
       {
         CStdString strYear;
@@ -4294,6 +4299,10 @@ CStdString CGUIInfoManager::GetItemLabel(const CFileItem *item, int info, CStdSt
         return strRatingAndVotes;
       }
     }
+    break;
+  case LISTITEM_VOTES:
+    if (item->HasVideoInfoTag())
+      return item->GetVideoInfoTag()->m_strVotes;
     break;
   case LISTITEM_PROGRAM_COUNT:
     {
