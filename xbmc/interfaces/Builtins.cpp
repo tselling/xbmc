@@ -48,6 +48,8 @@
 #include "storage/MediaManager.h"
 #include "utils/RssManager.h"
 #include "PartyModeManager.h"
+#include "profiles/ProfilesManager.h"
+#include "settings/DisplaySettings.h"
 #include "settings/Settings.h"
 #include "settings/MediaSourceSettings.h"
 #include "settings/SkinSettings.h"
@@ -295,11 +297,11 @@ int CBuiltins::Execute(const CStdString& execString)
   }
   else if (execute.Equals("loadprofile"))
   {
-    int index = g_settings.GetProfileIndex(parameter);
+    int index = CProfilesManager::Get().GetProfileIndex(parameter);
     bool prompt = (params.size() == 2 && params[1].Equals("prompt"));
     bool bCanceled;
     if (index >= 0
-        && (g_settings.GetMasterProfile().getLockMode() == LOCK_MODE_EVERYONE
+        && (CProfilesManager::Get().GetMasterProfile().getLockMode() == LOCK_MODE_EVERYONE
             || g_passwordManager.IsProfileLockUnlocked(index,bCanceled,prompt)))
     {
       CApplicationMessenger::Get().LoadProfile(index);
@@ -470,7 +472,7 @@ int CBuiltins::Execute(const CStdString& execString)
     else if (parameter.Equals("1080i")) res = RES_HDTV_1080i;
     if (g_graphicsContext.IsValidResolution(res))
     {
-      g_guiSettings.SetResolution(res);
+      CDisplaySettings::Get().SetCurrentResolution(res, true);
       g_graphicsContext.SetVideoResolution(res);
       g_application.ReloadSkin();
     }
@@ -1266,7 +1268,7 @@ int CBuiltins::Execute(const CStdString& execString)
     ADDON::CAddonMgr::Get().StopServices(true);
 
     g_application.getNetwork().NetworkMessage(CNetwork::SERVICES_DOWN,1);
-    g_settings.LoadMasterForLogin();
+    CProfilesManager::Get().LoadMasterProfileForLogin();
     g_passwordManager.bMasterUser = false;
     g_windowManager.ActivateWindow(WINDOW_LOGIN_SCREEN);
     if (!g_application.StartEventServer()) // event server could be needed in some situations
