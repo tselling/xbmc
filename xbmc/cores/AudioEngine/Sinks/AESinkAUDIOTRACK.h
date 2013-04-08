@@ -21,6 +21,7 @@
 
 #include "Interfaces/AESink.h"
 #include "Utils/AEDeviceInfo.h"
+#include "Utils/AEConvert.h"
 
 class AERingBuffer;
 
