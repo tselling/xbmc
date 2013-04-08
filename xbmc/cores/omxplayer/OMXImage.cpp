@@ -33,6 +33,7 @@
 
 #include <sys/time.h>
 #include <inttypes.h>
+#include "settings/DisplaySettings.h"
 #include "settings/GUISettings.h"
 #include "settings/Settings.h"
 #include "settings/AdvancedSettings.h"
@@ -59,7 +60,6 @@ COMXImage::COMXImage()
   m_width         = 0;
   m_height        = 0;
 
-  m_is_open       = false;
   m_decoded_buffer = NULL;
   m_encoded_buffer = NULL;
 
@@ -320,12 +320,12 @@ OMX_IMAGE_CODINGTYPE COMXImage::GetCodingType()
       else if(marker == M_APP1)
       {
         int readBits = 2;
-        bool bMotorolla = false;
-        bool bError = false;
 
         // Exif header
         if(CBitstreamConverter::read_bits(&br, 32) == 0x45786966)
         {
+          bool bMotorolla = false;
+          bool bError = false;
           CBitstreamConverter::skip_bits(&br, 8 * 2);
           readBits += 2;
         
