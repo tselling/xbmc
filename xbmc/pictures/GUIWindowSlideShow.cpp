@@ -33,8 +33,8 @@
 #include "GUIDialogPictureInfo.h"
 #include "GUIUserMessages.h"
 #include "guilib/GUIWindowManager.h"
+#include "settings/AdvancedSettings.h"
 #include "settings/DisplaySettings.h"
-#include "settings/Settings.h"
 #include "settings/GUISettings.h"
 #include "FileItem.h"
 #include "guilib/Texture.h"
@@ -391,8 +391,8 @@ void CGUIWindowSlideShow::Process(unsigned int currentTime, CDirtyRegionList &re
   int iSlides = m_slides->Size();
   if (!iSlides) return ;
 
-  // if we haven't rendered yet, we should mark the whole screen
-  if (!m_hasRendered)
+  // if we haven't processed yet, we should mark the whole screen
+  if (!HasProcessed())
     regions.push_back(CRect(0.0f, 0.0f, (float)g_graphicsContext.GetWidth(), (float)g_graphicsContext.GetHeight()));
 
   if (m_iNextSlide < 0 || m_iNextSlide >= m_slides->Size())
@@ -825,7 +825,6 @@ void CGUIWindowSlideShow::RenderErrorMessage()
   const CGUIControl *control = GetControl(LABEL_ROW1);
   if (NULL == control || control->GetControlType() != CGUIControl::GUICONTROL_LABEL)
   {
-     CLog::Log(LOGERROR,"CGUIWindowSlideShow::RenderErrorMessage - cant get label control!");
      return;
   }
 
@@ -865,10 +864,12 @@ bool CGUIWindowSlideShow::OnMessage(CGUIMessage& message)
     {
       CStdString strFolder = message.GetStringParam();
       unsigned int iParams = message.GetParam1();
+      std::string beginSlidePath = message.GetStringParam(1);
       //decode params
       bool bRecursive = false;
       bool bRandom = false;
       bool bNotRandom = false;
+      bool bPause = false;
       if (iParams > 0)
       {
         if ((iParams & 1) == 1)
@@ -877,8 +878,10 @@ bool CGUIWindowSlideShow::OnMessage(CGUIMessage& message)
           bRandom = true;
         if ((iParams & 4) == 4)
           bNotRandom = true;
+        if ((iParams & 8) == 8)
+          bPause = true;
       }
-      RunSlideShow(strFolder, bRecursive, bRandom, bNotRandom);
+      RunSlideShow(strFolder, bRecursive, bRandom, bNotRandom, SORT_METHOD_LABEL, SortOrderAscending, "", beginSlidePath, !bPause);
     }
     break;
 
@@ -1092,13 +1095,17 @@ void CGUIWindowSlideShow::AddFromPath(const CStdString &strPath,
 void CGUIWindowSlideShow::RunSlideShow(const CStdString &strPath, 
                                        bool bRecursive /* = false */, bool bRandom /* = false */, 
                                        bool bNotRandom /* = false */, SORT_METHOD method /* = SORT_METHOD_LABEL */, 
-                                       SortOrder order /* = SortOrderAscending */, const CStdString &strExtensions)
+                                       SortOrder order /* = SortOrderAscending */, const CStdString &strExtensions /* = "" */,
+                                       const CStdString &beginSlidePath /* = "" */, bool startSlideShow /* = true */)
 {
   // stop any video
   if (g_application.IsPlayingVideo())
     g_application.StopPlaying();
 
   AddFromPath(strPath, bRecursive, method, order, strExtensions);
+
+  if (!NumSlides())
+    return;
 
   // mutually exclusive options
   // if both are set, clear both and use the gui setting
@@ -1109,9 +1116,20 @@ void CGUIWindowSlideShow::RunSlideShow(const CStdString &strPath,
   if ((!bNotRandom && g_guiSettings.GetBool("slideshow.shuffle")) || bRandom)
     Shuffle();
 
-  StartSlideShow();
-  if (NumSlides())
-    g_windowManager.ActivateWindow(WINDOW_SLIDESHOW);
+  if (!beginSlidePath.IsEmpty())
+    Select(beginSlidePath);
+
+  if (startSlideShow)
+    StartSlideShow();
+  else 
+  {
+    CVariant param;
+    param["player"]["speed"] = 0;
+    param["player"]["playerid"] = PLAYLIST_PICTURE;
+    ANNOUNCEMENT::CAnnouncementManager::Announce(ANNOUNCEMENT::Player, "xbmc", "OnPlay", GetCurrentSlide(), param);
+  }
+
+  g_windowManager.ActivateWindow(WINDOW_SLIDESHOW);
 }
 
 void CGUIWindowSlideShow::AddItems(const CStdString &strPath, path_set *recursivePaths, SORT_METHOD method, SortOrder order)
@@ -1128,7 +1146,7 @@ void CGUIWindowSlideShow::AddItems(const CStdString &strPath, path_set *recursiv
 
   // fetch directory and sort accordingly
   CFileItemList items;
-  if (!CDirectory::GetDirectory(strPath, items, m_strExtensions.IsEmpty()?g_settings.m_pictureExtensions:m_strExtensions,DIR_FLAG_NO_FILE_DIRS,true))
+  if (!CDirectory::GetDirectory(strPath, items, m_strExtensions.IsEmpty()?g_advancedSettings.m_pictureExtensions:m_strExtensions,DIR_FLAG_NO_FILE_DIRS,true))
     return;
 
   items.Sort(method, order);
