@@ -626,6 +626,7 @@ void CLinuxRendererGL::Update(bool bPauseDrawing)
   if (!m_bConfigured) return;
   ManageDisplay();
   ManageTextures();
+  m_scalingMethodGui = (ESCALINGMETHOD)-1;
 }
 
 void CLinuxRendererGL::RenderUpdate(bool clear, DWORD flags, DWORD alpha)
@@ -828,13 +829,13 @@ unsigned int CLinuxRendererGL::PreInit()
 
 void CLinuxRendererGL::UpdateVideoFilter()
 {
-  bool pixelRatioChanged    = (g_settings.m_fPixelRatio > 1.001f || g_settings.m_fPixelRatio < 0.999f) !=
+  bool pixelRatioChanged    = (CDisplaySettings::Get().GetPixelRatio() > 1.001f || CDisplaySettings::Get().GetPixelRatio() < 0.999f) !=
                               (m_pixelRatio > 1.001f || m_pixelRatio < 0.999f);
   bool nonLinStretchChanged = false;
-  if (m_nonLinStretchGui != g_settings.m_bNonLinStretch || pixelRatioChanged)
+  if (m_nonLinStretchGui != CDisplaySettings::Get().IsNonLinearStretched() || pixelRatioChanged)
   {
-    m_nonLinStretchGui   = g_settings.m_bNonLinStretch;
-    m_pixelRatio         = g_settings.m_fPixelRatio;
+    m_nonLinStretchGui   = CDisplaySettings::Get().IsNonLinearStretched();
+    m_pixelRatio         = CDisplaySettings::Get().GetPixelRatio();
     m_reloadShaders      = 1;
     nonLinStretchChanged = true;
 
@@ -1272,7 +1273,7 @@ void CLinuxRendererGL::RenderSinglePass(int index, int field)
   if (g_application.m_pPlayer && g_application.m_pPlayer->IsInMenu())
     m_pYUVShader->SetNonLinStretch(1.0);
   else
-    m_pYUVShader->SetNonLinStretch(pow(g_settings.m_fPixelRatio, g_advancedSettings.m_videoNonLinStretchRatio));
+    m_pYUVShader->SetNonLinStretch(pow(CDisplaySettings::Get().GetPixelRatio(), g_advancedSettings.m_videoNonLinStretchRatio));
 
   if     (field == FIELD_TOP)
     m_pYUVShader->SetField(1);
@@ -1505,7 +1506,7 @@ void CLinuxRendererGL::RenderFromFBO()
     if (g_application.m_pPlayer && g_application.m_pPlayer->IsInMenu())
       m_pVideoFilterShader->SetNonLinStretch(1.0);
     else
-      m_pVideoFilterShader->SetNonLinStretch(pow(g_settings.m_fPixelRatio, g_advancedSettings.m_videoNonLinStretchRatio));
+      m_pVideoFilterShader->SetNonLinStretch(pow(CDisplaySettings::Get().GetPixelRatio(), g_advancedSettings.m_videoNonLinStretchRatio));
 
     m_pVideoFilterShader->Enable();
   }
@@ -1585,7 +1586,7 @@ void CLinuxRendererGL::RenderVDPAU(int index, int field)
     if (g_application.m_pPlayer && g_application.m_pPlayer->IsInMenu())
       m_pVideoFilterShader->SetNonLinStretch(1.0);
     else
-      m_pVideoFilterShader->SetNonLinStretch(pow(g_settings.m_fPixelRatio, g_advancedSettings.m_videoNonLinStretchRatio));
+      m_pVideoFilterShader->SetNonLinStretch(pow(CDisplaySettings::Get().GetPixelRatio(), g_advancedSettings.m_videoNonLinStretchRatio));
 
     m_pVideoFilterShader->Enable();
   }
@@ -1676,7 +1677,7 @@ void CLinuxRendererGL::RenderVAAPI(int index, int field)
     if (g_application.m_pPlayer && g_application.m_pPlayer->IsInMenu())
       m_pVideoFilterShader->SetNonLinStretch(1.0);
     else
-      m_pVideoFilterShader->SetNonLinStretch(pow(g_settings.m_fPixelRatio, g_advancedSettings.m_videoNonLinStretchRatio));
+      m_pVideoFilterShader->SetNonLinStretch(pow(CDisplaySettings::Get().GetPixelRatio(), g_advancedSettings.m_videoNonLinStretchRatio));
 
     m_pVideoFilterShader->Enable();
   }
@@ -3357,6 +3358,13 @@ bool CLinuxRendererGL::Supports(ESCALINGMETHOD method)
   || method == VS_SCALINGMETHOD_SPLINE36
   || method == VS_SCALINGMETHOD_LANCZOS3)
   {
+    // if scaling is below level, avoid hq scaling
+    float scaleX = fabs(((float)m_sourceWidth - m_destRect.Width())/m_sourceWidth)*100;
+    float scaleY = fabs(((float)m_sourceHeight - m_destRect.Height())/m_sourceHeight)*100;
+    int minScale = g_guiSettings.GetInt("videoplayer.hqscalers");
+    if (scaleX < minScale && scaleY < minScale)
+      return false;
+
     if ((glewIsSupported("GL_EXT_framebuffer_object") && (m_renderMethod & RENDER_GLSL)) ||
         (m_renderMethod & RENDER_VDPAU) || (m_renderMethod & RENDER_VAAPI))
     {
