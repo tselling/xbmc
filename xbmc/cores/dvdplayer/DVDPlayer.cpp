@@ -85,7 +85,6 @@
 #include "utils/StringUtils.h"
 #include "Util.h"
 #include "LangInfo.h"
-#include "ApplicationMessenger.h"
 
 using namespace std;
 using namespace PVR;
@@ -520,6 +519,9 @@ bool CDVDPlayer::CloseFile()
 
   if(m_pSubtitleDemuxer)
     m_pSubtitleDemuxer->Abort();
+
+  if(m_pInputStream)
+    m_pInputStream->Abort();
 
   CLog::Log(LOGNOTICE, "DVDPlayer: waiting for threads to exit");
 
@@ -1169,15 +1171,6 @@ void CDVDPlayer::Process()
       // input stream asked us to just retry
       if(next == CDVDInputStream::NEXTSTREAM_RETRY)
       {
-        Sleep(100);
-        continue;
-      }
-      else if (m_pInputStream->IsStreamType(DVDSTREAM_TYPE_PVRMANAGER))
-      {
-        CDVDInputStreamPVRManager* pStream = static_cast<CDVDInputStreamPVRManager*>(m_pInputStream);
-        if (pStream->IsEOF())
-          break;
-
         Sleep(100);
         continue;
       }
