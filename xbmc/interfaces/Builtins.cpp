@@ -51,6 +51,7 @@
 #include "profiles/ProfilesManager.h"
 #include "settings/DisplaySettings.h"
 #include "settings/Settings.h"
+#include "settings/MediaSettings.h"
 #include "settings/MediaSourceSettings.h"
 #include "settings/SkinSettings.h"
 #include "utils/StringUtils.h"
@@ -126,6 +127,7 @@ const BUILT_IN commands[] = {
   { "Mastermode",                 false,  "Control master mode" },
   { "ActivateWindow",             true,   "Activate the specified window" },
   { "ActivateWindowAndFocus",     true,   "Activate the specified window and sets focus to the specified id" },
+  { "ReplaceWindowAndFocus",      true,   "Replaces the current window with the new one and sets focus to the specified id" },
   { "ReplaceWindow",              true,   "Replaces the current window with the new one" },
   { "TakeScreenshot",             false,  "Takes a Screenshot" },
   { "RunScript",                  true,   "Run the specified script" },
@@ -361,7 +363,7 @@ int CBuiltins::Execute(const CStdString& execString)
     CGUIMessage msg(GUI_MSG_SETFOCUS, g_windowManager.GetFocusedWindow(), controlID, subItem);
     g_windowManager.SendMessage(msg);
   }
-  else if ((execute.Equals("activatewindowandfocus")) && params.size())
+  else if ((execute.Equals("activatewindowandfocus") || execute.Equals("replacewindowandfocus")) && params.size())
   {
     CStdString strWindow = params[0];
 
@@ -376,7 +378,7 @@ int CBuiltins::Execute(const CStdString& execString)
         CBuiltins::Execute("Quit");
 #endif
       vector<CStdString> dummy;
-      g_windowManager.ActivateWindow(iWindow, dummy, false);
+      g_windowManager.ActivateWindow(iWindow, dummy, !execute.Equals("activatewindowandfocus"));
 
       unsigned int iPtr = 1;
       while (params.size() > iPtr + 1)
@@ -390,7 +392,7 @@ int CBuiltins::Execute(const CStdString& execString)
     }
     else
     {
-      CLog::Log(LOGERROR, "ActivateWindowAndFocus called with invalid destination window: %s", strWindow.c_str());
+      CLog::Log(LOGERROR, "Replace/ActivateWindowAndFocus called with invalid destination window: %s", strWindow.c_str());
       return false;
     }
   }
@@ -576,7 +578,7 @@ int CBuiltins::Execute(const CStdString& execString)
       if (params[i].Equals("isdir"))
         item.m_bIsFolder = true;
       else if (params[i].Equals("1")) // set fullscreen or windowed
-        g_settings.m_bStartVideoWindowed = true;
+        CMediaSettings::Get().SetVideoStartWindowed(true);
       else if (params[i].Equals("resume"))
       {
         // force the item to resume (if applicable) (see CApplication::PlayMedia)
@@ -605,7 +607,7 @@ int CBuiltins::Execute(const CStdString& execString)
     if (item.m_bIsFolder)
     {
       CFileItemList items;
-      CDirectory::GetDirectory(item.GetPath(),items,g_settings.m_videoExtensions);
+      CDirectory::GetDirectory(item.GetPath(),items,g_advancedSettings.m_videoExtensions);
       int playlist = PLAYLIST_MUSIC;
       for (int i = 0; i < items.Size(); i++)
       {
@@ -641,24 +643,37 @@ int CBuiltins::Execute(const CStdString& execString)
       CLog::Log(LOGERROR, "XBMC.SlideShow called with empty parameter");
       return -2;
     }
+    std::string beginSlidePath;
     // leave RecursiveSlideShow command as-is
     unsigned int flags = 0;
     if (execute.Equals("RecursiveSlideShow"))
       flags |= 1;
 
-    // SlideShow(dir[,recursive][,[not]random])
+    // SlideShow(dir[,recursive][,[not]random][,pause][,beginslide="/path/to/start/slide.jpg"])
+    // the beginslide value need be escaped (for '"' or '\' in it, by backslash)
+    // and then quoted, or not. See CUtil::SplitParams()
     else
     {
-      if ((params.size() > 1 && params[1] == "recursive") || (params.size() > 2 && params[2] == "recursive"))
-        flags |= 1;
-      if ((params.size() > 1 && params[1] == "random") || (params.size() > 2 && params[2] == "random"))
-        flags |= 2;
-      if ((params.size() > 1 && params[1] == "notrandom") || (params.size() > 2 && params[2] == "notrandom"))
-        flags |= 4;
+      for (unsigned int i = 1 ; i < params.size() ; i++)
+      {
+        if (params[i].Equals("recursive"))
+          flags |= 1;
+        else if (params[i].Equals("random")) // set fullscreen or windowed
+          flags |= 2;
+        else if (params[i].Equals("notrandom"))
+          flags |= 4;
+        else if (params[i].Equals("pause"))
+          flags |= 8;
+        else if (params[i].Left(11).Equals("beginslide="))
+          beginSlidePath = params[i].Mid(11);
+      }
     }
 
     CGUIMessage msg(GUI_MSG_START_SLIDESHOW, 0, 0, flags);
-    msg.SetStringParam(params[0]);
+    vector<CStdString> strParams;
+    strParams.push_back(params[0]);
+    strParams.push_back(beginSlidePath);
+    msg.SetStringParams(strParams);
     CGUIWindow *pWindow = g_windowManager.GetWindow(WINDOW_SLIDESHOW);
     if (pWindow) pWindow->OnMessage(msg);
   }
@@ -819,11 +834,11 @@ int CBuiltins::Execute(const CStdString& execString)
       switch (iPlaylist)
       {
       case PLAYLIST_MUSIC:
-        g_settings.m_bMyMusicPlaylistShuffle = g_playlistPlayer.IsShuffled(iPlaylist);
+        CMediaSettings::Get().SetMusicPlaylistShuffled(g_playlistPlayer.IsShuffled(iPlaylist));
         g_settings.Save();
         break;
       case PLAYLIST_VIDEO:
-        g_settings.m_bMyVideoPlaylistShuffle = g_playlistPlayer.IsShuffled(iPlaylist);
+        CMediaSettings::Get().SetVideoPlaylistShuffled(g_playlistPlayer.IsShuffled(iPlaylist));
         g_settings.Save();
       }
 
@@ -863,11 +878,11 @@ int CBuiltins::Execute(const CStdString& execString)
       switch (iPlaylist)
       {
       case PLAYLIST_MUSIC:
-        g_settings.m_bMyMusicPlaylistRepeat = (state == PLAYLIST::REPEAT_ALL);
+        CMediaSettings::Get().SetMusicPlaylistRepeat(state == PLAYLIST::REPEAT_ALL);
         g_settings.Save();
         break;
       case PLAYLIST_VIDEO:
-        g_settings.m_bMyVideoPlaylistRepeat = (state == PLAYLIST::REPEAT_ALL);
+        CMediaSettings::Get().SetVideoPlaylistRepeat(state == PLAYLIST::REPEAT_ALL);
         g_settings.Save();
       }
 
@@ -887,11 +902,11 @@ int CBuiltins::Execute(const CStdString& execString)
   }
   else if (execute.Equals("setvolume"))
   {
-    int oldVolume = g_application.GetVolume();
+    float oldVolume = g_application.GetVolume();
     float volume = (float)strtod(parameter.c_str(), NULL);
 
     g_application.SetVolume(volume);
-    if(oldVolume != (int)volume)
+    if(oldVolume != volume)
     {
       if(params.size() > 1 && params[1].Equals("showVolumeBar"))    
       {
