@@ -1755,13 +1755,8 @@ CStdString CGUIInfoManager::GetLabel(int info, int contextWindow, CStdString *fa
   case SYSTEM_PROFILEAUTOLOGIN:
     {
       int profileId = CProfilesManager::Get().GetAutoLoginProfileId();
-      if (profileId == -1)
-        strLabel = g_localizeStrings.Get(37014); // Most recent
-      else
-      {
-        const CProfile *profile = CProfilesManager::Get().GetProfile(profileId);
-        strLabel = profile->getName();
-      }
+      if ((profileId < 0) || (!CProfilesManager::Get().GetProfileName(profileId, strLabel)))
+        strLabel = g_localizeStrings.Get(37014); // Last used profile
     }
     break;
   case SYSTEM_LANGUAGE:
@@ -3249,9 +3244,9 @@ CStdString CGUIInfoManager::LocalizeTime(const CDateTime &time, TIME_FORMAT form
   case TIME_FORMAT_HH_MM_XX:
       return time.GetAsLocalizedTime(use12hourclock ? "h:mm xx" : "HH:mm", false);
   case TIME_FORMAT_HH_MM_SS:
-    return time.GetAsLocalizedTime("hh:mm:ss", true);
+    return time.GetAsLocalizedTime(use12hourclock ? "hh:mm:ss" : "HH:mm:ss", true);
   case TIME_FORMAT_HH_MM_SS_XX:
-    return time.GetAsLocalizedTime("hh:mm:ss xx", true);
+    return time.GetAsLocalizedTime(use12hourclock ? "hh:mm:ss xx" : "HH:mm:ss", true);
   case TIME_FORMAT_H:
     return time.GetAsLocalizedTime("h", false);
   case TIME_FORMAT_H_MM_SS:
