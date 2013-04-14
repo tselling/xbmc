@@ -28,6 +28,7 @@ from urlresolver.plugnplay.interfaces import UrlResolver
 from urlresolver.plugnplay.interfaces import PluginSettings
 from urlresolver.plugnplay import Plugin
 from threading import Thread
+import time
 
 class PutlockerResolver(Plugin, UrlResolver, PluginSettings):
     implements = [UrlResolver, PluginSettings]
@@ -138,6 +139,7 @@ class PutlockerResolver(Plugin, UrlResolver, PluginSettings):
                 return False
             
     def valid_url(self, url, host):
+            if self.get_setting('enabled') == 'false': return False
             return (re.match('http://(www.)?(putlocker|sockshare).com/' +  '(file|embed)/[0-9A-Z]+', url) or 'putlocker' in host or 'sockshare' in host)
 
     def login_stale(self):
@@ -212,6 +214,7 @@ class InputWindow(xbmcgui.WindowDialog):
 
     def get(self):
         self.show()
+        time.sleep(5)        
         self.kbd.doModal()
         if (self.kbd.isConfirmed()):
             text = self.kbd.getText()

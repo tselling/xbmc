@@ -56,7 +56,7 @@ import jsunpack
 #Common Cache
 import xbmcvfs
 # plugin constants
-dbg = True # Set to false if you don't want debugging
+dbg = False # Set to false if you don't want debugging
 
 #Common Cache
 try:
@@ -563,8 +563,7 @@ def Zip_DL_and_Install(url, filename, installtype,work_folder,mc):
      #link = Handle_Vidlink(url)
      #filename = re.search('[^/]+$', link).group(0)
      
-     #Use Minus.com to download meta packs
-     link = resolve_minus(url, filename)
+     link = url + filename
      
      #define the path to save it to
      filepath=os.path.normpath(os.path.join(work_folder,filename))
@@ -668,58 +667,34 @@ def resolve_vidhog(url):
         print 'VidHog - Requesting GET URL: %s' % url
         html = net.http_GET(url).content
 
-        dialog.update(33)
+        dialog.update(50)
         
         #Check page for any error msgs
         if re.search('This server is in maintenance mode', html):
             print '***** VidHog - Site reported maintenance mode'
             raise Exception('File is currently unavailable on the host')
-        
-        #Set POST data values
-        op = re.search('<input type="hidden" name="op" value="(.+?)">', html).group(1)
-        usr_login = re.search('<input type="hidden" name="usr_login" value="(.*?)">', html).group(1)
-        postid = re.search('<input type="hidden" name="id" value="(.+?)">', html).group(1)
-        fname = re.search('<input type="hidden" name="fname" value="(.+?)">', html).group(1)
-        method_free = re.search('<input type="submit" name="method_free" value="(.+?)" class="freebtn right">', html).group(1)
-        
-        data = {'op': op, 'usr_login': usr_login, 'id': postid, 'fname': fname, 'referer': url, 'method_free': method_free}
-        
-        print 'VidHog - Requesting POST URL: %s DATA: %s' % (url, data)
-        html = net.http_POST(url, data).content
-        
-        dialog.update(66)
-                
-        #Set POST data values
-        op = re.search('<input type="hidden" name="op" value="(.+?)">', html).group(1)
-        postid = re.search('<input type="hidden" name="id" value="(.+?)">', html).group(1)
-        rand = re.search('<input type="hidden" name="rand" value="(.+?)">', html).group(1)
-        method_free = re.search('<input type="hidden" name="method_free" value="(.+?)">', html).group(1)
-        down_direct = int(re.search('<input type="hidden" name="down_direct" value="(.+?)">', html).group(1))
-        wait = int(re.search('<span id="countdown_str">Wait <span id=".+?">([0-9]*)</span>', html).group(1))
-        
-        data = {'op': op, 'id': postid, 'rand': rand, 'referer': url, 'method_free': method_free, 'down_direct': down_direct}
-        
-        dialog.close()
-        
-        #Do wait time for free accounts    
-        finished = do_wait('VidHog', '', wait)
+        if re.search('<b>File Not Found</b>', html):
+            print '***** VidHog - File not found'
+            raise Exception('File has been deleted')
 
-        if finished:
-            print 'VidHog - Requesting POST URL: %s DATA: %s' % (url, data)
-            
-            dialog.create('Resolving', 'Resolving VidHog Link...')
-            dialog.update(66)
-            
-            html = net.http_POST(url, data).content
-            
-            dialog.update(100)
-            
-            dialog.close()
+        filename = re.search('<strong>\(<font color="red">(.+?)</font>\)</strong><br><br>', html).group(1)
+        extension = re.search('(\.[^\.]*$)', filename).group(1)
+        guid = re.search('http://vidhog.com/(.+)$', url).group(1)
         
-            link = re.search('<strong><a href="(.+?)">Click Here to download this file</a></strong>', html).group(1)
-            return link
-        else:
-            return None
+        vid_embed_url = 'http://vidhog.com/vidembed-%s%s' % (guid, extension)
+        
+        request = urllib2.Request(vid_embed_url)
+        request.add_header('User-Agent', USER_AGENT)
+        request.add_header('Referer', url)
+        response = urllib2.urlopen(request)
+        redirect_url = re.search('(http://.+?)video', response.geturl()).group(1)
+        download_link = redirect_url + filename
+        
+        dialog.update(100)
+
+        dialog.close()
+
+        return download_link
         
     except Exception, e:
         print '**** VidHog Error occured: %s' % e
@@ -984,35 +959,43 @@ def resolve_movreel(url):
 
         #Set POST data values
         op = re.search('<input type="hidden" name="op" value="(.+?)">', html).group(1)
-        usr_login = re.search('<input type="hidden" name="usr_login" value="(.*?)">', html).group(1)
         postid = re.search('<input type="hidden" name="id" value="(.+?)">', html).group(1)
-        fname = re.search('<input type="hidden" name="fname" value="(.+?)">', html).group(1)
-        method_free = re.search('<input type="submit" name="method_free" style=".+?" value="(.+?)">', html).group(1)
+        method_free = re.search('<input type="(submit|hidden)" name="method_free" (style=".*?" )*value="(.*?)">', html).group(3)
+        method_premium = re.search('<input type="(hidden|submit)" name="method_premium" (style=".*?" )*value="(.*?)">', html).group(3)
         
-        data = {'op': op, 'usr_login': usr_login, 'id': postid, 'referer': url, 'fname': fname, 'method_free': method_free}
+        if method_free:
+            usr_login = ''
+            fname = re.search('<input type="hidden" name="fname" value="(.+?)">', html).group(1)
+            data = {'op': op, 'usr_login': usr_login, 'id': postid, 'referer': url, 'fname': fname, 'method_free': method_free}
+        else:
+            rand = re.search('<input type="hidden" name="rand" value="(.+?)">', html).group(1)
+            data = {'op': op, 'id': postid, 'referer': url, 'rand': rand, 'method_premium': method_premium}
         
         print 'Movreel - Requesting POST URL: %s DATA: %s' % (url, data)
         html = net.http_POST(url, data).content
 
-        #Check for download limit error msg
-        if re.search('<p class="err">.+?</p>', html):
-            print '***** Download limit reached'
-            errortxt = re.search('<p class="err">(.+?)</p>', html).group(1)
-            raise Exception(errortxt)
+        #Only do next post if Free account, skip to last page for download link if Premium
+        if method_free:
+            #Check for download limit error msg
+            if re.search('<p class="err">.+?</p>', html):
+                print '***** Download limit reached'
+                errortxt = re.search('<p class="err">(.+?)</p>', html).group(1)
+                raise Exception(errortxt)
+    
+            dialog.update(66)
+            
+            #Set POST data values
+            op = re.search('<input type="hidden" name="op" value="(.+?)">', html).group(1)
+            postid = re.search('<input type="hidden" name="id" value="(.+?)">', html).group(1)
+            rand = re.search('<input type="hidden" name="rand" value="(.+?)">', html).group(1)
+            method_free = re.search('<input type="hidden" name="method_free" value="(.+?)">', html).group(1)
+            
+            data = {'op': op, 'id': postid, 'rand': rand, 'referer': url, 'method_free': method_free, 'down_direct': 1}
+    
+            print 'Movreel - Requesting POST URL: %s DATA: %s' % (url, data)
+            html = net.http_POST(url, data).content
 
-        dialog.update(66)
-        
-        #Set POST data values
-        op = re.search('<input type="hidden" name="op" value="(.+?)">', html).group(1)
-        postid = re.search('<input type="hidden" name="id" value="(.+?)">', html).group(1)
-        rand = re.search('<input type="hidden" name="rand" value="(.+?)">', html).group(1)
-        method_free = re.search('<input type="hidden" name="method_free" value="(.+?)">', html).group(1)
-        
-        data = {'op': op, 'id': postid, 'rand': rand, 'referer': url, 'method_free': method_free, 'down_direct': 1}
-
-        print 'Movreel - Requesting POST URL: %s DATA: %s' % (url, data)
-        html = net.http_POST(url, data).content
-        
+        #Get download link
         dialog.update(100)
         link = re.search('<a id="lnk_download" href="(.+?)">Download Original Video</a>', html, re.DOTALL).group(1)
         dialog.close()
@@ -1035,13 +1018,7 @@ def resolve_billionuploads(url):
         
         print 'BillionUploads - Requesting GET URL: %s' % url
         html = net.http_GET(url).content
-        
-        #They need to wait for the link to activate in order to get the proper 2nd page
-        dialog.close()
-        do_wait('Waiting on link to activate', '', 3)
-        dialog.create('Resolving', 'Resolving BillionUploads Link...') 
-        dialog.update(50)
-        
+               
         #Check page for any error msgs
         if re.search('This server is in maintenance mode', html):
             print '***** BillionUploads - Site reported maintenance mode'
@@ -1053,8 +1030,51 @@ def resolve_billionuploads(url):
         postid = re.search('<input type="hidden" name="id" value="(.+?)">', html).group(1)
         method_free = re.search('<input type="hidden" name="method_free" value="(.*?)">', html).group(1)
         down_direct = re.search('<input type="hidden" name="down_direct" value="(.+?)">', html).group(1)
-                
-        data = {'op': op, 'rand': rand, 'id': postid, 'referer': url, 'method_free': method_free, 'down_direct': down_direct}
+        
+        #Captcha
+        captchaimg = re.search('<img src="(http://BillionUploads.com/captchas/.+?)"', html)
+        
+        dialog.close()
+        
+        #If Captcha image exists
+        if captchaimg:
+            #Grab Image and display it
+            img = xbmcgui.ControlImage(550,15,240,100,captchaimg.group(1))
+            wdlg = xbmcgui.WindowDialog()
+            wdlg.addControl(img)
+            wdlg.show()
+            
+            #Small wait to let user see image
+            time.sleep(3)
+            
+            #Prompt keyboard for user input
+            kb = xbmc.Keyboard('', 'Type the letters in the image', False)
+            kb.doModal()
+            capcode = kb.getText()
+            
+            #Check input
+            if (kb.isConfirmed()):
+              userInput = kb.getText()
+              if userInput != '':
+                  capcode = kb.getText()
+              elif userInput == '':
+                   Notify('big', 'No text entered', 'You must enter text in the image to access video', '')
+                   return None
+            else:
+                return None
+            wdlg.close()
+            
+            data = {'op': op, 'rand': rand, 'id': postid, 'referer': url, 'method_free': method_free, 'down_direct': down_direct, 'code': capcode}
+
+        else:
+            data = {'op': op, 'rand': rand, 'id': postid, 'referer': url, 'method_free': method_free, 'down_direct': down_direct}
+
+        #They need to wait for the link to activate in order to get the proper 2nd page
+        dialog.close()
+        do_wait('Waiting on link to activate', '', 3)
+               
+        dialog.create('Resolving', 'Resolving BillionUploads Link...') 
+        dialog.update(50)
         
         print 'BillionUploads - Requesting POST URL: %s DATA: %s' % (url, data)
         html = net.http_POST(url, data).content
@@ -1067,6 +1087,52 @@ def resolve_billionuploads(url):
 
     except Exception, e:
         print '**** BillionUploads Error occured: %s' % e
+        raise
+
+
+def resolve_epicshare(url):
+
+    try:
+        
+        #Show dialog box so user knows something is happening
+        dialog = xbmcgui.DialogProgress()
+        dialog.create('Resolving', 'Resolving EpicShare Link...')
+        dialog.update(0)
+        
+        print 'EpicShare - Requesting GET URL: %s' % url
+        html = net.http_GET(url).content
+
+        dialog.update(50)
+        
+        #Check page for any error msgs
+        if re.search('This server is in maintenance mode', html):
+            print '***** EpicShare - Site reported maintenance mode'
+            raise Exception('File is currently unavailable on the host')
+        if re.search('<b>File Not Found</b>', html):
+            print '***** EpicShare - File not found'
+            raise Exception('File has been deleted')
+
+        filename = re.search('<h2>(.+)</h2>', html).group(1)
+        extension = re.search('(\.[^\.]*$)', filename).group(1)
+        guid = re.search('http://epicshare.net/(.+)$', url).group(1)
+        
+        vid_embed_url = 'http://epicshare.net/vidembed-%s%s' % (guid, extension)
+        
+        request = urllib2.Request(vid_embed_url)
+        request.add_header('User-Agent', USER_AGENT)
+        request.add_header('Referer', url)
+        response = urllib2.urlopen(request)
+        redirect_url = re.search('(http://.+?)video', response.geturl()).group(1)
+        download_link = redirect_url + filename
+        
+        dialog.update(100)
+
+        dialog.close()
+
+        return download_link
+        
+    except Exception, e:
+        print '**** EpicShare Error occured: %s' % e
         raise
 
 
@@ -1091,7 +1157,9 @@ def Startup_Routines():
      if meta_setting=='true': ContainerStartup()
      
      #Rescan Next Aired on startup - actually only rescans every 24hrs
-     xbmc.executebuiltin("RunScript(%s, silent=true)" % os.path.join(icepath, 'resources/script.tv.show.next.aired/default.py'))
+     next_aired = str2bool(selfAddon.getSetting('next-aired'))
+     if next_aired:
+         xbmc.executebuiltin("RunScript(%s, silent=true)" % os.path.join(icepath, 'resources/script.tv.show.next.aired/default.py'))
 
 def create_meta_pack():
        
@@ -1350,8 +1418,10 @@ def ADD_TO_FAVOURITES(name,url,imdbnum):
                
                Notify('small',name + ' added to favourites','','6000')
 
-               #Rescan Next Aired on startup - actually only rescans every 24hrs
-               xbmc.executebuiltin("RunScript(%s, silent=true)" % os.path.join(icepath, 'resources/script.tv.show.next.aired/default.py'))
+               #Rescan Next Aired
+               next_aired = str2bool(selfAddon.getSetting('next-aired'))
+               if next_aired:
+                   xbmc.executebuiltin("RunScript(%s, silent=true)" % os.path.join(icepath, 'resources/script.tv.show.next.aired/default.py'))
           else:
                print 'Warning - favourite already exists'
                Notify('small',name + ' favourite already exists','','6000')
@@ -1826,17 +1896,28 @@ def MOVIEINDEX(url):
     # we do this to fix the problem when there is no imdb_id. 
     # I have found only one movie with this problem, but we must check this...
     link = re.sub('<a name=i id=>','<a name=i id=None>',link)
-    
+
+    #initialise meta class before loop    
+    if meta_setting=='true':
+        metaget=metahandlers.MetaData(preparezip=prepare_zip)
+        meta_installed = metaget.check_meta_installed(addon_id)
+        
     temp = re.compile('(<h3>|<a name=i id=.+?></a><img class=star><a href=)(.+?)(<div|</h3>|>(.+?)<br>)').findall(link)
     for tag, link, longname, name in temp:
         if tag == '<h3>':
             VaddDir('[COLOR blue]' + link + '[/COLOR]', '', 0, '', False)
         else:
-            # I'm lazy so lets just put the string back together and re.compile it again to pass in a proper object to getMeta
             string = tag + link + longname + name
             scrape=re.compile('<a name=i id=(.+?)></a><img class=star><a href=/(.+?)>(.+?)<br>').findall(string)
-            getMeta(scrape, 100)
-
+            for imdb_id,url,name in scrape:
+                if meta_setting=='true':
+                    ADD_ITEM(metaget,meta_installed,imdb_id,url,name,100, totalitems=len(temp))
+                else:
+                    #add without metadata -- imdb is still passed for use with Add to Favourites
+                    for imdb_id,url,name in scrape:
+                        name=CLEANUP(name)
+                        addDir(name,iceurl+url,100,'',imdb='tt'+str(imdb_id), totalItems=len(scrape))
+ 
     # Enable library mode & set the right view for the content
     setView('movies', 'movies-view')
 
@@ -1846,6 +1927,11 @@ def TVINDEX(url):
 
     link=GetURL(url)
 
+    #initialise meta class before loop    
+    if meta_setting=='true':
+        metaget=metahandlers.MetaData(preparezip=prepare_zip)
+        meta_installed = metaget.check_meta_installed(addon_id)
+        
     #list scraper now tries to get number of episodes on icefilms for show. this only works in A-Z.
     #match=re.compile('<a name=i id=(.+?)></a><img class=star><a href=/(.+?)>(.+?)</a>').findall(link)
     firstText = re.compile('<h3>(.+?)</h3>').findall(link)
@@ -1858,10 +1944,12 @@ def TVINDEX(url):
         VaddDir('[COLOR blue]' + firstText[0] + '[/COLOR]', '', 0, '',False)
     else:
         regex = '<h3>(.+?)</h3>'
-    scrape=re.compile('<a name=i id=(.+?)></a><img class=star><a href=/(.+?)>(.+?)<br>').findall(link)
-    tmplist = []
-    tmplist.append(scrape[0])
-    getMeta(tmplist, 12)
+    scrape=re.search('<a name=i id=(.+?)></a><img class=star><a href=/(.+?)>(.+?)<br>', link)
+
+    if meta_setting=='true':
+        ADD_ITEM(metaget,meta_installed,scrape.group(1),scrape.group(2),scrape.group(3),12, totalitems=1)
+    else:
+        addDir(scrape.group(3),iceurl + scrape.group(2),12,'',imdb='tt'+str(scrape.group(1)), totalItems=1)
     
     #Break the remaining source into seperate lines and check if it contains a text entry
     temp = re.compile('r>(.+?)<b').findall(link)
@@ -1871,7 +1959,14 @@ def TVINDEX(url):
             VaddDir('[COLOR blue]' + text[0] + '[/COLOR]', '', 0, '',False)
         scrape=re.compile('<a name=i id=(.+?)></a><img class=star><a href=/(.+?)>(.+?)</a>').findall(entry)
         if scrape:
-            getMeta(scrape, 12)
+            for imdb_id,url,name in scrape:
+                if meta_setting=='true':
+                    ADD_ITEM(metaget,meta_installed,imdb_id,url,name,12, totalitems=len(temp))
+                else:
+                    #add without metadata -- imdb is still passed for use with Add to Favourites
+                    for imdb_id,url,name in scrape:
+                        name=CLEANUP(name)
+                        addDir(name,iceurl+url,12,'',imdb='tt'+str(imdb_id), totalItems=len(scrape))
     
     # Enable library mode & set the right view for the content
     setView('tvshows', 'tvshows-view')
@@ -1984,7 +2079,8 @@ def TVEPLINKS(source, season, imdb_id):
     
     # Enable library mode & set the right view for the content
     setView('episodes', 'episodes-view')
-             
+
+
 def LOADMIRRORS(url):
      # This proceeds from the file page to the separate frame where the mirrors can be found,
      # then executes code to scrape the mirrors
@@ -2257,6 +2353,7 @@ def PART(scrap,sourcenumber,args,cookie):
                         isjumbo = re.search('jumbofiles\.com/', url)
                         ismovreel = re.search('movreel\.com/', url)
                         isbillion = re.search('billionuploads\.com/', url)
+                        isepicshare = re.search('epicshare\.net/', url)
 
                         partname='Part '+partnum
                         if ismega:
@@ -2295,7 +2392,9 @@ def PART(scrap,sourcenumber,args,cookie):
                         elif isbillion:
                               fullname=sourcestring+' | BU | '+partname
                               logo = billionpic
-
+                        elif isepicshare:
+                              fullname=sourcestring+' | ES | '+partname
+                              logo = ''
 
                         try:
                             sources = eval(cache.get("source"+str(sourcenumber)+"parts"))
@@ -2335,6 +2434,7 @@ def PART(scrap,sourcenumber,args,cookie):
                     isjumbo = re.search('jumbofiles\.com/', url)
                     ismovreel = re.search('movreel\.com/', url)
                     isbillion = re.search('billionuploads\.com/', url)
+                    isepicshare = re.search('epicshare\.net/', url)
                     
                     if ismega is not None:
                          fullname=sourcestring+' | MU | Full'
@@ -2383,6 +2483,10 @@ def PART(scrap,sourcenumber,args,cookie):
                     elif isbillion:
                          fullname=sourcestring+' | BU  | Full'
                          addExecute(fullname,url,get_default_action(),billionpic)
+
+                    elif isepicshare:
+                         fullname=sourcestring+' | ES  | Full'
+                         addExecute(fullname,url,get_default_action(),'')
 
 
 def GetSource(id, args, cookie):
@@ -2613,7 +2717,7 @@ def WaitIf():
 
 #Quick helper function used to strip characters that are invalid for Windows filenames/folders
 def Clean_Windows_String(string):
-     return re.sub('[^-a-zA-Z0-9_.()\\\/ ]+', '',  string)
+     return re.sub('[^\w\-_\. ]', '',  string)
 
 
 #Helper function to convert strings to boolean values
@@ -2778,8 +2882,9 @@ def Handle_Vidlink(url):
      isjumbo = re.search('jumbofiles\.com/', url)
      ismovreel = re.search('movreel\.com/', url)
      isbillion = re.search('billionuploads\.com/', url)
+     isepicshare = re.search('epicshare\.net/', url)
      
-     host = re.search('//(.+?)/', url).group(1)
+     host = re.search('//[w\.]*(.+?)/', url).group(1)
          
     #Using real-debrid to get the generated premium link
      debrid_account = str2bool(selfAddon.getSetting('realdebrid-account'))
@@ -2843,6 +2948,9 @@ def Handle_Vidlink(url):
 
      elif isbillion:
           return resolve_billionuploads(url)
+
+     elif isepicshare:
+          return resolve_epicshare(url)
 
      elif israpid:
           
@@ -3665,7 +3773,9 @@ def addDir(name, url, mode, iconimage, meta=False, imdb=False, delfromfav=False,
                  liz.setProperty('fanart_image', meta['backdrop_url'])
              contextMenuItems.append(('Show Information', 'XBMC.Action(Info)'))
              if favourite:
-                 contextMenuItems.append(('Show Next Aired', 'RunScript(%s)' % os.path.join(icepath, 'resources/script.tv.show.next.aired/default.py')))
+                 next_aired = str2bool(selfAddon.getSetting('next-aired'))
+                 if next_aired:
+                     contextMenuItems.append(('Show Next Aired', 'RunScript(%s)' % os.path.join(icepath, 'resources/script.tv.show.next.aired/default.py')))
          elif mode == 13: # TV Season
              addWatched = True
              if tv_fanart == 'true' and tv_fanart_installed == 'true':
@@ -3846,43 +3956,8 @@ def cleanUnicode(string):
         return string
 
 
-def getMeta(scrape, mode):
-
-    #check settings over whether to display the number of episodes next to tv show name.
-    #show_num_of_eps=selfAddon.getSetting('display-show-eps')
-    
-    #print scrape
-
-    #add with metadata
-    if meta_setting=='true':
-    
-        #initialise meta class before loop
-        metaget=metahandlers.MetaData(preparezip=prepare_zip)
-        meta_installed = metaget.check_meta_installed(addon_id)
-
-        #determine whether to show number of eps
-        #if scrape[3] and show_num_of_eps == 'true' and mode == 12:
-        #    for imdb_id,url,name,num_of_eps in scrape:
-        #        num_of_eps=re.sub('<','',num_of_eps)
-        #        num_of_eps=re.sub('isode','',num_of_eps)#turn Episode{s} into Ep(s)
-        #        ADD_ITEM(metaget,meta_installed,imdb_id,url,name,mode,num_of_eps, totalitems=len(scrape))
-        #if mode == 12: # fix for tvshows with num of episodes disabled
-        #    for imdb_id,url,name in scrape:
-        #        ADD_ITEM(metaget,meta_installed,imdb_id,url,name,mode, totalitems=len(scrape))
-        #else:
-        for imdb_id,url,name in scrape:
-            ADD_ITEM(metaget,meta_installed,imdb_id,url,name,mode, totalitems=len(scrape))
-                
-    #add without metadata -- imdb is still passed for use with Add to Favourites
-    else:
-        for imdb_id,url,name in scrape:
-            name=CLEANUP(name)
-            addDir(name,iceurl+url,mode,'',imdb='tt'+str(imdb_id), totalItems=len(scrape))
-            
-
 def ADD_ITEM(metaget, meta_installed, imdb_id,url,name,mode,num_of_eps=False, totalitems=0):
             #clean name of unwanted stuff
-            print name
             name=CLEANUP(name)
             if url.startswith('http://www.icefilms.info') == False:
                 url=iceurl+url
