@@ -1,0 +1,11 @@
+<settings>
+<category label="tv-release Settings">
+	<setting id="firstrun" type="bool" label="DO NOT TOUCH" default="false" visible="false"/>
+	<setting id="ga_warn" type="text" label="GA_WARN" default="false" visible="false"/>
+	<setting id="ga_time" type="text" label="GA Called" default="2000-01-01 00:00:00" visible="false"/>
+    <setting id="visitor_ga" type="text" label="GA visitor" default="" visible="false"/>
+	<setting id="pop_time" type="text" label="For POP UP" default="2000-01-01 00:00:00" visible="false"/>
+	<setting id="use_ga" type="bool" label="Allow the use of Google Analytics" default="true"/>
+	
+</category>
+</settings>

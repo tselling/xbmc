@@ -80,7 +80,7 @@ class VideoweedResolver(Plugin, UrlResolver, PluginSettings):
         
         
     def get_host_and_id(self, url):
-        r = re.search('//(?:embed.)?(.+?)/(?:video/|embed.php\?v=)' + 
+        r = re.search('//(?:embed.)?(.+?)/(?:video/|embed.php\?v=|file/)' + 
                       '([0-9a-z]+)', url)
         if r:
             return r.groups()
@@ -89,6 +89,7 @@ class VideoweedResolver(Plugin, UrlResolver, PluginSettings):
 
 
     def valid_url(self, url, host):
-        return re.match('http://(www.|embed.)?videoweed.(?:es|com)/(video/|embed.php\?)' +
+        if self.get_setting('enabled') == 'false': return False
+        return re.match('http://(www.|embed.)?videoweed.(?:es|com)/(video/|file|embed.php\?|file/)' +
                         '(?:[0-9a-z]+|width)', url) or 'videoweed' in host
 
