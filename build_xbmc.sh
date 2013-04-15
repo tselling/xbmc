@@ -13,6 +13,6 @@ cd $BUILD_DIR
 
 make -C tools/depends/target/xbmc || exit 1
 
-make || exit 1
+make -j8 || exit 1
 
 make apk || exit 1
